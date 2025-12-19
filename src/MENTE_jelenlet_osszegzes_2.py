@@ -19,6 +19,7 @@ XLSX_FILENAME_DATE_PATTERN = re.compile(r"Középhaladós próba.*(\d{4})\. ?(\d
 
 # expects: a csv file, ';' separated, first column is names, first row is header row
 POSSIBLE_NAMES_CSV = "D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/anyakonyvezheto_utonevek_2019_08.csv"
+# POSSIBLE_NAMES_CSV = "D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/anyakonyvezheto_utonevek_2019_08.csv"
 
 
 def process(folder: Path) -> pd.DataFrame:
@@ -45,7 +46,10 @@ def process(folder: Path) -> pd.DataFrame:
         with open(POSSIBLE_NAMES_CSV, encoding="utf-8") as csvfile:
             rows = csv.reader(csvfile, delimiter=";")
             next(rows)  # skip header
-            return {r[0] for r in rows}
+            names = {r[0] for r in rows}
+            if not names:
+                raise RuntimeError("Allowed names were not found in CSV!")
+            return names
 
     def fix_name(names, email) -> list[str]:
         print(f"Attempting to fix names: {names}")
@@ -112,7 +116,7 @@ def process(folder: Path) -> pd.DataFrame:
                         print(f"\t\t'{e}':'{name}',")
                     erros_found = True
                 else:  # email-name is already in EMAIL_NAME_DATABASE dict
-                    valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE][0]
+                    valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE]
                     if len(valid_emails) == 1:
                         valid_email = valid_emails[0]
                         wrong_emails = {e for e in emails if e != valid_email}

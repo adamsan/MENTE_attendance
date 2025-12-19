@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+
+# generated summary spreadsheets
+reports/
+my_reports/
