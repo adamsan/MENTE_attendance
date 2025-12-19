@@ -10,7 +10,7 @@ import os
 import argparse
 from functools import cache
 
-from config.database import EMAIL_NAMES_DATABASE
+from jelenlet.config.database import EMAIL_NAMES_DATABASE
 from jelenlet.excel_export import to_excel
 from jelenlet.paths import POSSIBLE_NAMES_CSV
 
