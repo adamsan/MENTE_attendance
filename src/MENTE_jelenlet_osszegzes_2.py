@@ -9,7 +9,10 @@ from pathlib import Path
 import os
 import argparse
 from functools import cache
-from MENTE_jelenlet_config import EMAIL_NAMES_DATABASE
+
+from config.database import EMAIL_NAMES_DATABASE
+from jelenlet.excel_export import to_excel
+from jelenlet.paths import POSSIBLE_NAMES_CSV
 
 # Constants
 EMAIL = "E-mail-cím"  # column names in the xlsx file
@@ -17,8 +20,9 @@ NAME = "Teljes név"
 XLSX_FILENAME_DATE_PATTERN = re.compile(r"Középhaladós próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx")
 # Example file name: 'Középhaladós próba - 2024. 09. 09. (válaszok).xlsx'
 
+# PROJECT_DIR = Path(__file__).resolve().parents[2]
 # expects: a csv file, ';' separated, first column is names, first row is header row
-POSSIBLE_NAMES_CSV = "D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/anyakonyvezheto_utonevek_2019_08.csv"
+# POSSIBLE_NAMES_CSV = PROJECT_DIR / "data" / "anyakonyvezheto_utonevek_2019_08.csv"
 # POSSIBLE_NAMES_CSV = "D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/anyakonyvezheto_utonevek_2019_08.csv"
 
 
@@ -191,20 +195,6 @@ def process(folder: Path) -> pd.DataFrame:
     # df_summary.sort_values(by=['Név'], inplace=True)
     df_summary.sort_values(by="Név", key=lambda s: s.map(locale.strxfrm), inplace=True)
     return df_summary
-
-
-def to_excel(fname, df):
-    with pd.ExcelWriter(fname, engine="xlsxwriter") as writer:
-        df.to_excel(writer, sheet_name="Sheet1", index=False)
-
-        worksheet = writer.sheets["Sheet1"]
-
-        for column in df:
-            column_length = max(df[column].astype(str).map(len).max(), len(str(column)))
-            col_idx = df.columns.get_loc(column)
-            worksheet.set_column(col_idx, col_idx, column_length)
-
-        worksheet.freeze_panes(0, 3)
 
 
 def main(data_loc: Path, output_dir: Path):
