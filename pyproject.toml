@@ -1,0 +1,15 @@
+[project]
+name = "myuv-test"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "xlsxwriter>=3.2.9",
+]
+
+# [tool.black]
+# line-length = 140
+# target-version = ["py311"]
