@@ -13,3 +13,5 @@ wheels/
 # generated summary spreadsheets
 reports/
 my_reports/
+
+src/jelenlet/config/database.py
