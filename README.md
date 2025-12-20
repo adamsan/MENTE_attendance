@@ -126,6 +126,7 @@ Attempting to fix names: ['Dávid Faragó', 'Farago David', 'Faragó Dávid', 'F
 
 Itt azt mondja, hogy a sok lehetőség közül a 'Faragó Dávid' nevet fogja használni minden 'dfarago193@gmail.com' email címhez.
 Ha ezzel nem értünk egyet, vagy felül akarjuk írni a döntését, az `src/jelenlet/config/database.py` fájlt kell szerkeszteni.
+(Ha ez a fájl nem létezik, másold le a `database.example.py`-t `database.py` néven.)
 A fentebb felsorolt sorok közül kiválasztunk egyet (de ha egyik sem jó, sajátot írhatunk, és beleírjuk a `database.py` fájlba, a `TODO` komment alá)
 
 ```python
