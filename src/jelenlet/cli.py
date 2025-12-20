@@ -3,13 +3,14 @@ import argparse
 
 from jelenlet.process import process
 from jelenlet.excel_export import to_excel
+from jelenlet.process import REPORT_PREFIX
 
 
 def main(data_loc: Path, output_dir: Path):
     # only add email address - name pairs, if names, or emails need to be fixed:
     collective_df = process(data_loc)
     collective_df.reset_index(inplace=True)
-    output_file_name = output_dir.joinpath(f"kozephalado_proba_osszegzes_{Path(data_loc).name}.xlsx")
+    output_file_name = output_dir.joinpath(f"{REPORT_PREFIX}_osszegzes_{Path(data_loc).name}.xlsx")
     print(f"Saving report to {output_file_name}")
     to_excel(output_file_name, collective_df)
     print("Done. Bye! :)\n")

@@ -18,6 +18,7 @@ EMAIL = "E-mail-cím"  # column names in the xlsx file
 NAME = "Teljes név"
 XLSX_FILENAME_DATE_PATTERN = re.compile(r"Középhaladós próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx")
 # Example file name: 'Középhaladós próba - 2024. 09. 09. (válaszok).xlsx'
+REPORT_PREFIX = "kozephalado_proba"  # Kimenet fájl fog így kezdődni.
 
 # PROJECT_DIR = Path(__file__).resolve().parents[2]
 # expects: a csv file, ';' separated, first column is names, first row is header row
