@@ -4,6 +4,7 @@ import argparse
 from jelenlet.process import process
 from jelenlet.excel_export import to_excel
 from jelenlet.process import REPORT_PREFIX
+from jelenlet.errors import ReportError
 
 
 def main(data_loc: Path, output_dir: Path):
@@ -45,4 +46,7 @@ if __name__ == "__main__":
         return args.folder, args.out
 
     folder, output_dir = parse_args()
-    main(folder, output_dir)  # 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
+    try:
+        main(folder, output_dir)  # 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
+    except ReportError as e:
+        print(e)

@@ -11,7 +11,7 @@ from functools import cache
 
 from jelenlet.config.database import EMAIL_NAMES_DATABASE
 from jelenlet.paths import POSSIBLE_NAMES_CSV
-
+from jelenlet.errors import ReportError
 
 # Constants
 EMAIL = "E-mail-cím"  # column names in the xlsx file
@@ -52,7 +52,7 @@ def process(folder: Path) -> pd.DataFrame:
             next(rows)  # skip header
             names = {r[0] for r in rows}
             if not names:
-                raise RuntimeError("Allowed names were not found in CSV!")
+                raise ReportError("Allowed names were not found in CSV!")
             return names
 
     def fix_name(names, email) -> list[str]:
@@ -145,11 +145,11 @@ def process(folder: Path) -> pd.DataFrame:
         try_to_fix_name_problems(email_names)
         print("-------")
         if are_nameproblems_still(email_names):
-            raise RuntimeError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
+            raise ReportError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
         change_names_in_dataframes(email_names, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos
         if catch_email_typos(email_names, dfs):
-            raise RuntimeError("Errors found during email checks. Add apropriate lines to email_name_database to continue. Aborting...")
+            raise ReportError("Errors found during email checks. Add apropriate lines to email_name_database to continue. Aborting...")
 
         email_names_full = {k: v[0] for k, v in email_names.items()}  # full and fixed email-name dictionary
         return dfs, file_names, email_names_full
@@ -158,7 +158,7 @@ def process(folder: Path) -> pd.DataFrame:
     def find_date(file_path):
         match = XLSX_FILENAME_DATE_PATTERN.search(file_path)
         if match is None:
-            raise ValueError(f"No date found in path: {file_path}")
+            raise ReportError(f"No date found in path: {file_path}")
         y, m, d = (int(x) for x in match.groups())
         return datetime.date(y, m, d)
 
