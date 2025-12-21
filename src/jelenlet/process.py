@@ -16,7 +16,7 @@ from jelenlet.database import read_email_name_database, db_append
 EMAIL_NAMES_DATABASE = read_email_name_database()
 
 # Constants
-EMAIL = "E-mail-cím"  # column names in the xlsx file
+EMAIL = "E-mail-cím"  # column names in the xlsx files
 NAME = "Teljes név"
 XLSX_FILENAME_DATE_PATTERN = re.compile(r"Középhaladós próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx")
 # Example file name: 'Középhaladós próba - 2024. 09. 09. (válaszok).xlsx'

@@ -18,8 +18,10 @@ def to_excel(fname, df):
 
 
 def color_alternating_rows(writer, worksheet, df):
-    row_format_even = writer.book.add_format({"bg_color": "#DDDDDD"})
-    row_format_odd = writer.book.add_format({"bg_color": "#FFFFFF"})
+    # row_format_even = writer.book.add_format({"bg_color": "#DDDDDD", "border": 1})
+    # row_format_odd = writer.book.add_format({"bg_color": "#FFFFFF", "border": 1})
+    row_format_even = writer.book.add_format({"bg_color": "#DDDDDD", "right": 1})
+    row_format_odd = writer.book.add_format({"bg_color": "#FFFFFF", "right": 1})
 
     worksheet.conditional_format(
         first_row=1,
