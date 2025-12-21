@@ -90,6 +90,12 @@ Majd futtassuk:
 uv run python -m jelenlet.cli --help
 ```
 
+vagy:
+
+```bat
+uv run jelenlet --help
+```
+
 Ami, jó esetben kiírja az alábbi "help" szöveget:
 
 ```sh
@@ -110,7 +116,7 @@ options:
 Ez alapján már lehet is futtatni:
 
 ```sh
-uv run python -m jelenlet.cli D:/jelenleti_adatok/2024_25_osz/
+uv run jelenlet D:/jelenleti_adatok/2024_25_osz/
 ```
 
 Itt figyelni kell a program kimenetet. A program megpróbálja megkeresni a nevekben a hibákat.
