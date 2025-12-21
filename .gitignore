@@ -15,3 +15,4 @@ reports/
 my_reports/
 
 src/jelenlet/config/database.py
+data/database.ini
