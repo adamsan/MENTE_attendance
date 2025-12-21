@@ -1,8 +1,6 @@
-from pathlib import Path
+from jelenlet.paths import DATA_DIR
 
-DATABASE_FILE = "database.ini"
-
-EMAILS_DB_FILE = Path(__file__).resolve().parents[2].joinpath("data", DATABASE_FILE)
+EMAILS_DB_FILE = DATA_DIR.joinpath("database.ini")
 
 
 def create_if_not_exists():
