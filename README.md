@@ -1,4 +1,4 @@
-# MENTE - Jelenléti riport készítő – felhasználói útmutató
+# MENTE - Jelenléti összesítés készítő – felhasználói útmutató
 
 Ez a program Excel-fájlokból **összesített jelenléti riportot** készít.  
 Tipikusan olyan Google Forms / Excel exportokat dolgoz fel, amelyek fájlneve például ilyen:
@@ -134,8 +134,8 @@ Figyeljük a program kimenetét, lesznek még olyan sorok is, amelyek így nézn
 Attempting to fix names: ['Cápa Krisztina', 'Cápa Kriszti']
 ACTION REQUIRED: Could not autofix names: ['Cápa Krisztina', 'Cápa Kriszti']
         Add either of following lines to EMAIL_NAME_DATABASE dictionary:
-                capakrisz12345@gmail.com = Cápa Krisztina,
-                capakrisz12345@gmail.com = Cápa Kriszti,
+                capakrisz12345@gmail.com = Cápa Krisztina
+                capakrisz12345@gmail.com = Cápa Kriszti
 ```
 
 Itt ki is írja, hogy "ACTION REQUIRED" - ugyanúgy fel kell vennünk a megfelelő sort a `database.ini` megfelelő sorába.
@@ -163,9 +163,8 @@ Ebben az esetben a program a `database.ini` fájlba felvesz kikommentelt sorokat
 
 ```ini
 # Uncomment (at least) one of these lines:
-sombeka51@gmail.com = Somi Rebeka
-somibeka155@gmail.com = Somi Rebeka
-
+# sombeka51@gmail.com = Somi Rebeka
+# somibeka155@gmail.com = Somi Rebeka
 ```
 
 Ha mindezzel megvagyunk, akkor a programot újból futtatva most már elkészíti az összefoglaló táblázatot:

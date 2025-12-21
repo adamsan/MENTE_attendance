@@ -85,7 +85,7 @@ def process(folder: Path) -> pd.DataFrame:
         print("\tAdd either of following lines to EMAIL_NAME_DATABASE dictionary:")
         db_append("\n# Uncomment one of these:")
         for n in names:
-            print(f"\t\t'{email}':'{n}',")
+            print(f"\t\t{email} = {n}")
             db_append(f"# {email} = {n}")
         return names
 
