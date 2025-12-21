@@ -30,13 +30,13 @@ A program az **uv** nevű eszközt használja, ami:
 
 #### Windows
 
-1. Menj ide: https://docs.astral.sh/uv/getting-started/installation/
+1. Menj ide: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
 2. Kövesd a telepítési útmutatást:
 
    - letöltheted a **Windows installer**-t, majd "Next Next Finish" módszer
    - vagy megnyithatsz egy powershell-t, és egy parancs futtatásával telepítheted a `uv`-t:
 
-   ```
+   ```powershell
        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
@@ -44,10 +44,13 @@ A program az **uv** nevű eszközt használja, ami:
 
 - Nyiss egy **Command Prompt**-ot (cmd)
 - Írd be:
+
   ```bat
   uv --version
   ```
+
   Valami ilyesmi választ jelzi, hogy sikerült a telepítés:
+
   ```bat
   uv 0.9.15 (5eafae332 2025-12-02)
   ```
@@ -57,7 +60,7 @@ A program az **uv** nevű eszközt használja, ami:
 Hozz létre egy mappát, pl.: `D:/jelenleti_adatok/2024_25_osz/`
 Ide töltsd le/csomagold ki a jelenléti ív fájljait.
 
-```
+```text
 Középhaladós próba - 2024. 09. 09. (válaszok).xlsx
 Középhaladós próba - 2024. 09. 16. (válaszok).xlsx
 etc...
@@ -73,7 +76,7 @@ Ez alatt a `REPORT_PREFIX = "kozephalado_proba"` konstanst is írjuk át a nekü
 
 ---
 
-### A program futtatása:
+### A program futtatása
 
 Parancssor megnyitása után menjünk a projekt mappába, ahová letöltöttük ezt a projektet.
 
@@ -114,7 +117,7 @@ Itt figyelni kell a program kimenetet. A program megpróbálja megkeresni a neve
 Aki elrontotta egy-két kitöltésnél a sorrendjét, ékezeteket, stb, azt megpróbálja kitalálni, melyik lehet a helyes.
 Ha van jó javaslata, arra a névre ilyesmit fog kiírni:
 
-```
+```text
 Attempting to fix names: ['Dávid Faragó', 'Farago David', 'Faragó Dávid', 'Faragó David']
         Resolving with: ['Faragó Dávid'] reason:[only one last christian name detected]
         If incorrect, add either of following lines to EMAIL_NAME_DATABASE:
@@ -124,7 +127,7 @@ Attempting to fix names: ['Dávid Faragó', 'Farago David', 'Faragó Dávid', 'F
                 dfarago193@gmail.com = Faragó David
 ```
 
-Itt azt mondja, hogy a sok lehetőség közül a 'Faragó Dávid' nevet fogja használni minden 'dfarago193@gmail.com' email címhez.
+Itt azt mondja, hogy a sok lehetőség közül a 'Faragó Dávid' nevet fogja használni minden `dfarago193@gmail.com` email címhez.
 Ha ezzel nem értünk egyet, vagy felül akarjuk írni a döntését, az `data/database.ini` fájlt kell szerkeszteni.
 Ez a fájl első futás után létrejön.
 
@@ -173,7 +176,7 @@ Ha mindezzel megvagyunk, akkor a programot újból futtatva most már elkészít
 
 A program kimenetének az alja:
 
-```
+```text
 Saving report to my_reports\kozephalado_proba_osszegzes_2024_25_osz.xlsx
 Done. Bye! :)
 ```
