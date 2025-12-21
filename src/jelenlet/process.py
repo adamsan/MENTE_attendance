@@ -55,8 +55,8 @@ def process(folder: Path, EMAIL_NAMES_DATABASE) -> pd.DataFrame:
         print("-------")
         change_names_in_dataframes(email_names, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos
-        wrong_right_emails = catch_email_typos(email_names, EMAIL_NAMES_DATABASE)
-        if not wrong_right_emails:
+        wrong_right_emails, email_errors = catch_email_typos(email_names, EMAIL_NAMES_DATABASE)
+        if email_errors:
             raise ReportError("Errors found during email checks. Add apropriate lines to email_name_database to continue. Aborting...")
         change_emails_in_dataframes(wrong_right_emails, dfs)
 

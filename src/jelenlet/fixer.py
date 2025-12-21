@@ -7,6 +7,7 @@ from jelenlet.paths import POSSIBLE_NAMES_CSV
 from jelenlet.errors import ReportError
 from jelenlet.database import db_append
 
+
 @cache
 def read_allowed_names() -> set[str]:
     with open(POSSIBLE_NAMES_CSV, encoding="utf-8") as csvfile:
@@ -38,8 +39,10 @@ def fix_name(names, email, EMAIL_NAMES_DATABASE) -> list[str]:
         result = [names[v.index(True)]]
         print(f"\tResolving with: {result} reason:[only one last christian name detected]")
         print("\tIf incorrect, add either of following lines to EMAIL_NAME_DATABASE")
+        db_append(f"\n# Resolving with: {result} reason:[only one last christian name detected]")
         for n in names:
             print(f"\t{email} = {n}")
+            db_append(("" if n == result[0] else "# ") + f"{email} = {n}")
         return result
 
     print(f"ACTION REQUIRED: Could not autofix names: {names}")
@@ -65,12 +68,12 @@ def can_fix_names(email_names, EMAIL_NAMES_DATABASE) -> bool:
     return False
 
 
-def catch_email_typos(email_names, EMAIL_NAMES_DATABASE) -> dict[str, str]:
+def catch_email_typos(email_names, EMAIL_NAMES_DATABASE) -> tuple[dict[str, str], bool]:
     name_emails = defaultdict(list)
     wrong_right_emails = {}
     for e, ns in email_names.items():
         name_emails[ns[0]].append(e)
-
+    errors_found = False
     for name, emails in name_emails.items():
         if len(emails) > 1:
             if all(e not in EMAIL_NAMES_DATABASE for e in emails):
@@ -80,6 +83,7 @@ def catch_email_typos(email_names, EMAIL_NAMES_DATABASE) -> dict[str, str]:
                 for e in emails:
                     print(f"{e} = {name}")
                     db_append(f"# {e} = {name}")
+                errors_found = True
             else:  # email-name is already in EMAIL_NAME_DATABASE dict
                 valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE]
                 if len(valid_emails) == 1:
@@ -92,4 +96,4 @@ def catch_email_typos(email_names, EMAIL_NAMES_DATABASE) -> dict[str, str]:
                     # handle, if we have two person with the same name / different email TODO: Do I need to do anything here?
                     print(f"Looks like different persons with the same name... {name} {valid_emails}")
 
-    return wrong_right_emails
+    return wrong_right_emails, errors_found
