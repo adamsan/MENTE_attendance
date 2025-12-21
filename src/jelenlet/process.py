@@ -83,6 +83,7 @@ def process(folder: Path) -> pd.DataFrame:
 
         print(f"ACTION REQUIRED: Could not autofix names: {names}")
         print("\tAdd either of following lines to EMAIL_NAME_DATABASE dictionary:")
+        db_append("\n# Uncomment one of these:")
         for n in names:
             print(f"\t\t'{email}':'{n}',")
             db_append(f"# {email} = {n}")
@@ -119,7 +120,7 @@ def process(folder: Path) -> pd.DataFrame:
                 if all(e not in EMAIL_NAMES_DATABASE for e in emails):
                     print(f"Problem found:'{name}' has multiple email addresses: {emails}")
                     print("\tAdd either of following lines to EMAIL_NAME_DATABASE:")
-                    db_append("\n# Uncomment one of these:")
+                    db_append("\n# Uncomment (at least) one of these lines:")
                     for e in emails:
                         print(f"{e} = {name}")
                         db_append(f"# {e} = {name}")
@@ -136,8 +137,6 @@ def process(folder: Path) -> pd.DataFrame:
                         # handle, if we have two person with the same name / different email TODO: Do I need to do anything here?
                         print(f"Looks like different persons with the same name... {name} {valid_emails}")
 
-        print("wrong->right")
-        print(wrong_right_emails)
         # make changes in dataframes:
         for df in dfs:
             df[EMAIL] = df[EMAIL].map(wrong_right_emails).fillna(df[EMAIL])
@@ -192,7 +191,6 @@ def process(folder: Path) -> pd.DataFrame:
         return new_df
 
     dfs, file_names, email_names_full = cleanup_dataframes()
-    print("Dataframes are clear now, continue processing them")
     df_summary = construct_collective_dataframe(file_names, dfs, email_names_full)
     # trying to fix order problem with hungarian accented letters
     locale.setlocale(locale.LC_COLLATE, "hu_HU.UTF-8")
