@@ -5,10 +5,7 @@ from collections import defaultdict
 
 from jelenlet.paths import POSSIBLE_NAMES_CSV
 from jelenlet.errors import ReportError
-from jelenlet.database import read_email_name_database, db_append
-
-EMAIL_NAMES_DATABASE = read_email_name_database()
-
+from jelenlet.database import db_append
 
 @cache
 def read_allowed_names() -> set[str]:
@@ -21,7 +18,7 @@ def read_allowed_names() -> set[str]:
         return names
 
 
-def fix_name(names, email) -> list[str]:
+def fix_name(names, email, EMAIL_NAMES_DATABASE) -> list[str]:
     print(f"Attempting to fix names: {names}")
     # check in database:
     if email and email in EMAIL_NAMES_DATABASE:
@@ -54,12 +51,12 @@ def fix_name(names, email) -> list[str]:
     return names
 
 
-def can_fix_names(email_names) -> bool:
+def can_fix_names(email_names, EMAIL_NAMES_DATABASE) -> bool:
     # If one email address has multiple names -> problem: capitalization, accented letters, typos, different name variations
     fixed = {}
     for email, names in email_names.items():
         if len(names) > 1:
-            fixed[email] = fix_name(names, email)
+            fixed[email] = fix_name(names, email, EMAIL_NAMES_DATABASE)
     email_names.update(fixed)
 
     if any(len(names) > 1 for _, names in email_names.items()):
@@ -68,7 +65,7 @@ def can_fix_names(email_names) -> bool:
     return False
 
 
-def catch_email_typos(email_names) -> dict[str, str]:
+def catch_email_typos(email_names, EMAIL_NAMES_DATABASE) -> dict[str, str]:
     name_emails = defaultdict(list)
     wrong_right_emails = {}
     for e, ns in email_names.items():

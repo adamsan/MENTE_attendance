@@ -8,10 +8,7 @@ from pathlib import Path
 import os
 
 from jelenlet.errors import ReportError
-from jelenlet.database import read_email_name_database
 from jelenlet.fixer import can_fix_names, catch_email_typos
-
-EMAIL_NAMES_DATABASE = read_email_name_database()
 
 # Constants
 EMAIL = "E-mail-cím"  # column names in the xlsx files
@@ -21,7 +18,7 @@ XLSX_FILENAME_DATE_PATTERN = re.compile(r"Középhaladós próba.*(\d{4})\. ?(\d
 REPORT_PREFIX = "kozephalado_proba"  # Kimenet fájl fog így kezdődni.
 
 
-def process(folder: Path) -> pd.DataFrame:
+def process(folder: Path, EMAIL_NAMES_DATABASE) -> pd.DataFrame:
     def read_dataframes() -> tuple[list[pd.DataFrame], list[str]]:
         file_names: list[str] = [os.path.join(folder, f) for f in os.listdir(folder) if XLSX_FILENAME_DATE_PATTERN.match(f)]
         dfs = [pd.read_excel(f) for f in file_names]
@@ -49,16 +46,16 @@ def process(folder: Path) -> pd.DataFrame:
         for df in dfs:
             df[EMAIL] = df[EMAIL].map(wrong_right_emails).fillna(df[EMAIL])
 
-    def cleanup_dataframes():
+    def cleanup_dataframes(EMAIL_NAMES_DATABASE):
         dfs, file_names = read_dataframes()
         # try to catch name typos:
         email_names = build_journal(dfs)
-        if can_fix_names(email_names):
+        if can_fix_names(email_names, EMAIL_NAMES_DATABASE):
             raise ReportError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
         print("-------")
         change_names_in_dataframes(email_names, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos
-        wrong_right_emails = catch_email_typos(email_names)
+        wrong_right_emails = catch_email_typos(email_names, EMAIL_NAMES_DATABASE)
         if not wrong_right_emails:
             raise ReportError("Errors found during email checks. Add apropriate lines to email_name_database to continue. Aborting...")
         change_emails_in_dataframes(wrong_right_emails, dfs)
@@ -98,7 +95,7 @@ def process(folder: Path) -> pd.DataFrame:
         new_df.index.name = "Email"
         return new_df
 
-    dfs, file_names, email_names_full = cleanup_dataframes()
+    dfs, file_names, email_names_full = cleanup_dataframes(EMAIL_NAMES_DATABASE)
     df_summary = construct_collective_dataframe(file_names, dfs, email_names_full)
     # trying to fix order problem with hungarian accented letters
     locale.setlocale(locale.LC_COLLATE, "hu_HU.UTF-8")
