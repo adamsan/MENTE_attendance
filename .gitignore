@@ -9,6 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+# vscode settings
+.vscode/settings.json
 
 # generated summary spreadsheets
 reports/
