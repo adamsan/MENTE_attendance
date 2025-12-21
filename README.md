@@ -142,6 +142,8 @@ Itt ki is írja, hogy "ACTION REQUIRED" - ugyanúgy fel kell vennünk a megfelel
 Ezt a program segíti, úgy, hogy kommentként beleírja ebbe a fájlba, nekünk csak döntenünk kell, melyiket választjuk.
 Amelyiket jónak találjuk, **"kikommenteljük"**, azaz eltávolítjuk a sor elejéről a `#` karaktert.
 
+Ha nincs egy név mellett az "ACTION REQUIRED", akkor automatikusan döntést hozott a helyes névről, ebben az esetben nem ír be kommentelt sorokat.
+
 Ha minden nevet felvettünk, akkor futtassuk újra a programot (felfelé nyíllal elérhetjük az előző parancsokat).
 Ha minden nevet kijavítottunk, akkor a program az emailcímek elírását próbálja kezelni.
 

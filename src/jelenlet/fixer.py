@@ -1,17 +1,13 @@
 import csv
 import string
 from functools import cache
-from jelenlet.paths import POSSIBLE_NAMES_CSV
+from collections import defaultdict
 
+from jelenlet.paths import POSSIBLE_NAMES_CSV
 from jelenlet.errors import ReportError
 from jelenlet.database import read_email_name_database, db_append
 
 EMAIL_NAMES_DATABASE = read_email_name_database()
-
-
-class Fixer:
-    def __init__(self) -> None:
-        pass
 
 
 @cache
@@ -56,3 +52,47 @@ def fix_name(names, email) -> list[str]:
         print(f"\t\t{email} = {n}")
         db_append(f"# {email} = {n}")
     return names
+
+
+def can_fix_names(email_names) -> bool:
+    # If one email address has multiple names -> problem: capitalization, accented letters, typos, different name variations
+    fixed = {}
+    for email, names in email_names.items():
+        if len(names) > 1:
+            fixed[email] = fix_name(names, email)
+    email_names.update(fixed)
+
+    if any(len(names) > 1 for _, names in email_names.items()):
+        print("Manual adjustment needed for EMAIL_NAME_DATABASE")
+        return True
+    return False
+
+
+def catch_email_typos(email_names) -> dict[str, str]:
+    name_emails = defaultdict(list)
+    wrong_right_emails = {}
+    for e, ns in email_names.items():
+        name_emails[ns[0]].append(e)
+
+    for name, emails in name_emails.items():
+        if len(emails) > 1:
+            if all(e not in EMAIL_NAMES_DATABASE for e in emails):
+                print(f"Problem found:'{name}' has multiple email addresses: {emails}")
+                print("\tAdd either of following lines to EMAIL_NAME_DATABASE:")
+                db_append("\n# Uncomment (at least) one of these lines:")
+                for e in emails:
+                    print(f"{e} = {name}")
+                    db_append(f"# {e} = {name}")
+            else:  # email-name is already in EMAIL_NAME_DATABASE dict
+                valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE]
+                if len(valid_emails) == 1:
+                    valid_email = valid_emails[0]
+                    wrong_emails = {e for e in emails if e != valid_email}
+                    for w in wrong_emails:
+                        wrong_right_emails[w] = valid_email
+                        del email_names[w]  # modify email_names - remove wrong email address
+                elif len(valid_emails) > 1:
+                    # handle, if we have two person with the same name / different email TODO: Do I need to do anything here?
+                    print(f"Looks like different persons with the same name... {name} {valid_emails}")
+
+    return wrong_right_emails

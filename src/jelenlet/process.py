@@ -8,8 +8,8 @@ from pathlib import Path
 import os
 
 from jelenlet.errors import ReportError
-from jelenlet.database import read_email_name_database, db_append
-from jelenlet.fixer import fix_name
+from jelenlet.database import read_email_name_database
+from jelenlet.fixer import can_fix_names, catch_email_typos
 
 EMAIL_NAMES_DATABASE = read_email_name_database()
 
@@ -19,11 +19,6 @@ NAME = "Teljes név"
 XLSX_FILENAME_DATE_PATTERN = re.compile(r"Középhaladós próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx")
 # Example file name: 'Középhaladós próba - 2024. 09. 09. (válaszok).xlsx'
 REPORT_PREFIX = "kozephalado_proba"  # Kimenet fájl fog így kezdődni.
-
-# PROJECT_DIR = Path(__file__).resolve().parents[2]
-# expects: a csv file, ';' separated, first column is names, first row is header row
-# POSSIBLE_NAMES_CSV = PROJECT_DIR / "data" / "anyakonyvezheto_utonevek_2019_08.csv"
-# POSSIBLE_NAMES_CSV = "D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/anyakonyvezheto_utonevek_2019_08.csv"
 
 
 def process(folder: Path) -> pd.DataFrame:
@@ -45,71 +40,28 @@ def process(folder: Path) -> pd.DataFrame:
                     email_names[email].append(name)
         return email_names
 
-    def try_to_fix_name_problems(email_names) -> None:
-        # If one email address has multiple names -> problem: capitalization, accented letters, typos, different name variations
-        fixed = {}
-        for email, names in email_names.items():
-            if len(names) > 1:
-                fixed[email] = fix_name(names, email)
-        email_names.update(fixed)
-
-    def are_nameproblems_still(email_names) -> bool:
-        if any(len(names) > 1 for _, names in email_names.items()):
-            print("Manual adjustment needed for EMAIL_NAME_DATABASE")
-            return True
-        return False
-
     def change_names_in_dataframes(email_names, dfs):
         email_names_db = {k: v[0] for k, v in email_names.items()}
         for df in dfs:
             df[NAME] = df[EMAIL].map(email_names_db).fillna(df[NAME])
 
-    def catch_email_typos(email_names, dfs):
-        name_emails = defaultdict(list)
-        wrong_right_emails = {}
-        for e, ns in email_names.items():
-            name_emails[ns[0]].append(e)
-
-        erros_found = False
-        for name, emails in name_emails.items():
-            if len(emails) > 1:
-                if all(e not in EMAIL_NAMES_DATABASE for e in emails):
-                    print(f"Problem found:'{name}' has multiple email addresses: {emails}")
-                    print("\tAdd either of following lines to EMAIL_NAME_DATABASE:")
-                    db_append("\n# Uncomment (at least) one of these lines:")
-                    for e in emails:
-                        print(f"{e} = {name}")
-                        db_append(f"# {e} = {name}")
-                    erros_found = True
-                else:  # email-name is already in EMAIL_NAME_DATABASE dict
-                    valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE]
-                    if len(valid_emails) == 1:
-                        valid_email = valid_emails[0]
-                        wrong_emails = {e for e in emails if e != valid_email}
-                        for w in wrong_emails:
-                            wrong_right_emails[w] = valid_email
-                            del email_names[w]  # modify email_names - remove wrong email address
-                    elif len(valid_emails) > 1:
-                        # handle, if we have two person with the same name / different email TODO: Do I need to do anything here?
-                        print(f"Looks like different persons with the same name... {name} {valid_emails}")
-
-        # make changes in dataframes:
+    def change_emails_in_dataframes(wrong_right_emails, dfs):
         for df in dfs:
             df[EMAIL] = df[EMAIL].map(wrong_right_emails).fillna(df[EMAIL])
-        return erros_found
 
     def cleanup_dataframes():
         dfs, file_names = read_dataframes()
         # try to catch name typos:
         email_names = build_journal(dfs)
-        try_to_fix_name_problems(email_names)
-        print("-------")
-        if are_nameproblems_still(email_names):
+        if can_fix_names(email_names):
             raise ReportError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
+        print("-------")
         change_names_in_dataframes(email_names, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos
-        if catch_email_typos(email_names, dfs):
+        wrong_right_emails = catch_email_typos(email_names)
+        if not wrong_right_emails:
             raise ReportError("Errors found during email checks. Add apropriate lines to email_name_database to continue. Aborting...")
+        change_emails_in_dataframes(wrong_right_emails, dfs)
 
         email_names_full = {k: v[0] for k, v in email_names.items()}  # full and fixed email-name dictionary
         return dfs, file_names, email_names_full
