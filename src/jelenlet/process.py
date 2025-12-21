@@ -9,9 +9,11 @@ from pathlib import Path
 import os
 from functools import cache
 
-from jelenlet.config.database import EMAIL_NAMES_DATABASE
 from jelenlet.paths import POSSIBLE_NAMES_CSV
 from jelenlet.errors import ReportError
+from jelenlet.database import read_email_name_database, db_append
+
+EMAIL_NAMES_DATABASE = read_email_name_database()
 
 # Constants
 EMAIL = "E-mail-cím"  # column names in the xlsx file
@@ -74,15 +76,16 @@ def process(folder: Path) -> pd.DataFrame:
         if sum(1 if x else 0 for x in v) == 1:  # if there is only one such name variation, that has a valid first name
             result = [names[v.index(True)]]
             print(f"\tResolving with: {result} reason:[only one last christian name detected]")
-            print("\tIf incorrect, add either of following lines to EMAIL_NAME_DATABASE dictionary:")
+            print("\tIf incorrect, add either of following lines to EMAIL_NAME_DATABASE")
             for n in names:
-                print(f"\t\t'{email}':'{n}',")
+                print(f"\t{email} = {n}")
             return result
 
         print(f"ACTION REQUIRED: Could not autofix names: {names}")
         print("\tAdd either of following lines to EMAIL_NAME_DATABASE dictionary:")
         for n in names:
             print(f"\t\t'{email}':'{n}',")
+            db_append(f"# {email} = {n}")
         return names
 
     def try_to_fix_name_problems(email_names) -> None:
@@ -115,9 +118,11 @@ def process(folder: Path) -> pd.DataFrame:
             if len(emails) > 1:
                 if all(e not in EMAIL_NAMES_DATABASE for e in emails):
                     print(f"Problem found:'{name}' has multiple email addresses: {emails}")
-                    print("\tAdd either of following lines to EMAIL_NAME_DATABASE dictionary:")
+                    print("\tAdd either of following lines to EMAIL_NAME_DATABASE:")
+                    db_append("\n# Uncomment one of these:")
                     for e in emails:
-                        print(f"\t\t'{e}':'{name}',")
+                        print(f"{e} = {name}")
+                        db_append(f"# {e} = {name}")
                     erros_found = True
                 else:  # email-name is already in EMAIL_NAME_DATABASE dict
                     valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE]
@@ -166,7 +171,6 @@ def process(folder: Path) -> pd.DataFrame:
         emails, names = list(zip(*email_names_full.items()))
         emails = list(emails)
         names = list(names)
-        print("construct_collective_dataframe called")
         email_attendance_count = defaultdict(int)
 
         data: dict[str | datetime.date, list] = {"Név": names}
