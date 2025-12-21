@@ -117,60 +117,55 @@ Ha van jó javaslata, arra a névre ilyesmit fog kiírni:
 ```
 Attempting to fix names: ['Dávid Faragó', 'Farago David', 'Faragó Dávid', 'Faragó David']
         Resolving with: ['Faragó Dávid'] reason:[only one last christian name detected]
-        If incorrect, add either of following lines to EMAIL_NAME_DATABASE dictionary:
-                'dfarago193@gmail.com':'Dávid Faragó',
-                'dfarago193@gmail.com':'Farago David',
-                'dfarago193@gmail.com':'Faragó Dávid',
-                'dfarago193@gmail.com':'Faragó David',
+        If incorrect, add either of following lines to EMAIL_NAME_DATABASE:
+                dfarago193@gmail.com = Dávid Faragó
+                dfarago193@gmail.com = Farago David
+                dfarago193@gmail.com = Faragó Dávid
+                dfarago193@gmail.com = Faragó David
 ```
 
 Itt azt mondja, hogy a sok lehetőség közül a 'Faragó Dávid' nevet fogja használni minden 'dfarago193@gmail.com' email címhez.
-Ha ezzel nem értünk egyet, vagy felül akarjuk írni a döntését, az `src/jelenlet/config/database.py` fájlt kell szerkeszteni.
-(Ha ez a fájl nem létezik, másold le a `database.example.py`-t `database.py` néven.)
-A fentebb felsorolt sorok közül kiválasztunk egyet (de ha egyik sem jó, sajátot írhatunk, és beleírjuk a `database.py` fájlba, a `TODO` komment alá)
-
-```python
-EMAIL_NAMES_DATABASE = {
-    # TODO: add "email" : "name", lines here
-}
-```
-
-Ezután ennek a fájlnak így kell kinéznie:
-
-```python
-EMAIL_NAMES_DATABASE = {
-    # TODO: add "email" : "name", lines here
-    'dfarago193@gmail.com':'Dávid Faragó Géza',
-}
-```
+Ha ezzel nem értünk egyet, vagy felül akarjuk írni a döntését, az `data/database.ini` fájlt kell szerkeszteni.
+Ez a fájl első futás után létrejön.
 
 Figyeljük a program kimenetét, lesznek még olyan sorok is, amelyek így néznek ki:
 
 ```sh
-ttempting to fix names: ['Cápa Krisztina', 'Cápa Kriszti']
+Attempting to fix names: ['Cápa Krisztina', 'Cápa Kriszti']
 ACTION REQUIRED: Could not autofix names: ['Cápa Krisztina', 'Cápa Kriszti']
         Add either of following lines to EMAIL_NAME_DATABASE dictionary:
-                'capakrisz12345@gmail.com':'Cápa Krisztina',
-                'capakrisz12345@gmail.com':'Cápa Kriszti',
+                capakrisz12345@gmail.com = Cápa Krisztina,
+                capakrisz12345@gmail.com = Cápa Kriszti,
 ```
 
-Itt ki is írja, hogy "ACTION REQUIRED" - ugyanúgy fel kell vennünk a megfelelő sort a `database.py` megfelelő sorába.
+Itt ki is írja, hogy "ACTION REQUIRED" - ugyanúgy fel kell vennünk a megfelelő sort a `database.ini` megfelelő sorába.
+Ezt a program segíti, úgy, hogy kommentként beleírja ebbe a fájlba, nekünk csak döntenünk kell, melyiket választjuk.
+Amelyiket jónak találjuk, **"kikommenteljük"**, azaz eltávolítjuk a sor elejéről a `#` karaktert.
 
 Ha minden nevet felvettünk, akkor futtassuk újra a programot (felfelé nyíllal elérhetjük az előző parancsokat).
 Ha minden nevet kijavítottunk, akkor a program az emailcímek elírását próbálja kezelni.
 
 Ha egy névhez több email cím tartozik, akkor felteszi a kérdést, melyik a helyes?
-Előfordulhat az, hogy két azonos nevű ember szerepel, és különbözik az email címük. Ebben az esetben ugyanúgy vegyük fel őket a `database.py`-ba
+Előfordulhat az, hogy két azonos nevű ember szerepel, és különbözik az email címük. Ebben az esetben ugyanúgy vegyük fel őket a `database.ini`-be
 Ha valaki elírta az email címét, akkor csak a helyeset vegyük fel.
 
 Erre egy példa kimenet:
 
 ```sh
 -------
-Problem found:'Somogyi Rebeka' has multiple email addresses: ['somogybeka51@gmail.com', 'somogyibeka155@gmai.com']
-        Add either of following lines to EMAIL_NAME_DATABASE dictionary:
-                'somogybeka51@gmail.com':'Somogyi Rebeka',
-                'somogyibeka155@gmail.com':'Somogyi Rebeka',
+Problem found:'Somi Rebeka' has multiple email addresses: ['somogybeka51@gmail.com', 'somibeka155@gmai.com']
+        Add either of following lines to EMAIL_NAME_DATABASE:
+                sombeka51@gmail.com = Somi Rebeka
+                somibeka155@gmail.com = Somi Rebeka
+```
+
+Ebben az esetben a program a `database.ini` fájlba felvesz kikommentelt sorokat, lásd lentebb. Nekünk a jó sort vagy sorokat (különböző, azonos nevű emberek esetén) kell kikommentelni.
+
+```ini
+# Uncomment (at least) one of these lines:
+sombeka51@gmail.com = Somi Rebeka
+somibeka155@gmail.com = Somi Rebeka
+
 ```
 
 Ha mindezzel megvagyunk, akkor a programot újból futtatva most már elkészíti az összefoglaló táblázatot:
@@ -178,8 +173,6 @@ Ha mindezzel megvagyunk, akkor a programot újból futtatva most már elkészít
 A program kimenetének az alja:
 
 ```
-Dataframes are clear now, continue processing them
-construct_collective_dataframe called
 Saving report to my_reports\kozephalado_proba_osszegzes_2024_25_osz.xlsx
 Done. Bye! :)
 ```
