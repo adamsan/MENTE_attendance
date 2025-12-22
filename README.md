@@ -70,9 +70,10 @@ etc...
 A program a fájlnévből dátumot keres, pontokkal elválasztva.
 Ezt a (reguláris kifejezést) mintát, ami az `src/jelenlet/process.py` fájl 19. során kell átírni, hogy megfeleljen a te fájl neveidnek.
 
-`XLSX_FILENAME_DATE_PATTERN = re.compile(r"Középhaladós próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx")`
+`XLSX_FILENAME_DATA_CUSTOM_PATTERN = r"Egyéb próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"`
 
-Ez alatt a `REPORT_PREFIX = "kozephalado_proba"` konstanst is írjuk át a nekünk megfelelőre. Ez fogja meghatározni, az elkészült összesítő fájl milyen névvel kezdődik.
+A csoport kapcsoló és a mappa neve fogja meghatározni, az elkészült összesítő fájl nevét.
+Lehetséges értékei: `kezdo, kozep, halado, egyeb`
 
 ---
 
@@ -99,24 +100,25 @@ uv run jelenlet --help
 Ami, jó esetben kiírja az alábbi "help" szöveget:
 
 ```sh
-$ uv run python -m jelenlet.cli -h
-usage: cli.py [-h] [--out OUT] folder
+$ uv run jelenlet --help
+usage: jelenlet [-h] [--out OUT] [--szint {kezdo,kozep,halado,egyeb}] folder
 
 Jelenléti adatok feldolgozása és Excel export készítés
 
 positional arguments:
-  folder      Bemeneti mappa elérési útja. Pl.: 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
+  folder                Bemeneti mappa elérési útja. Pl.: 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
 
 options:
-  -h, --help  show this help message and exit
-  --out OUT   Kimeneti mappa az összefoglaló Excel fájlhoz (alapértelmezett: ./reports)
-
+  -h, --help            show this help message and exit
+  --out OUT             Kimeneti mappa az összefoglaló Excel fájlhoz (alapértelmezett: ./reports)
+  --szint {kezdo,kozep,halado,egyeb}
+                        Csoport szintje: kezdo | kozep | halado | egyeb (alapértelmezett: kozep)
 ```
 
 Ez alapján már lehet is futtatni:
 
 ```sh
-uv run jelenlet D:/jelenleti_adatok/2024_25_osz/
+uv run jelenlet D:/jelenleti_adatok/2024_25_osz/ --csoport kezdo --out my_reports
 ```
 
 Itt figyelni kell a program kimenetet. A program megpróbálja megkeresni a nevekben a hibákat.
