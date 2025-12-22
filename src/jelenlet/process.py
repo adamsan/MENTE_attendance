@@ -28,18 +28,25 @@ XLSX_FILENAME_DATE_PATTERNS = {
 
 
 def check__alternative_column_names(file_name: str, df: pd.DataFrame):
-    EMAIL_ALTERNATIVES = ["Email Address", "Email", "E-mail", "e-mail"]
+    EMAIL_ALTERNATIVES = ["Email Address", "Email", "E-mail", "e-mail:", "Email Address:", "Email:", "E-mail:", "e-mail:"]
     if EMAIL not in df.columns:
         for col in EMAIL_ALTERNATIVES:
             if col in df.columns:
                 df[EMAIL] = df[col]
+                break
+    NAME_ALTERNATIVES = ["teljes név", "Name", "Full name", "Teljes név:", "Name:", "Full name:"]
+    if NAME not in df.columns:
+        for col in NAME_ALTERNATIVES:
+            if col in df.columns:
+                df[NAME] = df[col]
                 break
 
     if EMAIL in df.columns and NAME in df.columns and sum(1 for c in df.columns if c == NAME) == 1:
         pass
     else:
         raise ReportError(
-            f"{file_name} format was not proper. XLSX file needs 1 email column called '{EMAIL}', 1 name column called '{NAME}' only"
+            f"{file_name} format was not proper. XLSX file needs 1 email column called '{EMAIL}', 1 name column called '{NAME}' only "
+            + f"{df.columns}"
         )
 
 
