@@ -1,4 +1,5 @@
 import csv
+import re
 import string
 from functools import cache
 from collections import defaultdict
@@ -96,4 +97,15 @@ def catch_email_typos(email_names, EMAIL_NAMES_DATABASE) -> tuple[dict[str, str]
                     # handle, if we have two person with the same name / different email TODO: Do I need to do anything here?
                     print(f"Looks like different persons with the same name... {name} {valid_emails}")
 
+    print(f"Wrong->Right email substitutions:{wrong_right_emails}")
     return wrong_right_emails, errors_found
+
+
+def name_to_dummy_email(name: str) -> str:
+    # fallback in case name itself is NaN or empty
+    if not isinstance(name, str) or not name.strip():
+        return "unknown@dummy.local"
+
+    # normalize name -> lowercase, ascii-ish, dot-separated
+    local_part = re.sub(r"[^a-z0-9]+", ".", name.lower()).strip(".")
+    return f"{local_part}@DUMMY.LOCAL"

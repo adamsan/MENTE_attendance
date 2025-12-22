@@ -8,7 +8,7 @@ from pathlib import Path
 import os
 
 from jelenlet.errors import ReportError
-from jelenlet.fixer import can_fix_names, catch_email_typos
+from jelenlet.fixer import can_fix_names, catch_email_typos, name_to_dummy_email
 
 # Constants
 EMAIL = "E-mail-cím"  # column names in the xlsx files
@@ -31,10 +31,18 @@ def process(folder: Path, EMAIL_NAMES_DATABASE, level) -> pd.DataFrame:
     def read_dataframes() -> tuple[list[pd.DataFrame], list[str]]:
         file_names: list[str] = [os.path.join(folder, f) for f in os.listdir(folder) if XLSX_FILENAME_DATE_PATTERNS[level].match(f)]
         dfs = [pd.read_excel(f) for f in file_names]
-        # strip empty spaces
-        for df in dfs:
+        # strip empty spaces and check NaN emails
+        for df, file_name in zip(dfs, file_names):
             df[EMAIL] = df[EMAIL].str.strip()
             df[NAME] = df[NAME].str.strip()
+            # check for NaN email addresses
+            nan_mask = df[EMAIL].isna()
+            if nan_mask.any():
+                names_with_nan_email = df.loc[nan_mask, NAME].dropna().unique().tolist()
+                print(f"[WARNING] NaN email address(es) found in file: {file_name} Names: {names_with_nan_email}")
+            # fill NaN emails with generated dummy emails
+            df.loc[nan_mask, EMAIL] = df.loc[nan_mask, NAME].apply(name_to_dummy_email)
+
             df[NAME] = df[EMAIL].map(EMAIL_NAMES_DATABASE).fillna(df[NAME])
         return dfs, file_names
 
