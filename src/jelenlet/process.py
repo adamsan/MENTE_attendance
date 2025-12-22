@@ -31,6 +31,8 @@ def process(folder: Path, EMAIL_NAMES_DATABASE, level) -> pd.DataFrame:
     def read_dataframes() -> tuple[list[pd.DataFrame], list[str]]:
         file_names: list[str] = [os.path.join(folder, f) for f in os.listdir(folder) if XLSX_FILENAME_DATE_PATTERNS[level].match(f)]
         print(f"Found {len(file_names)} files.")
+        if not file_names:
+            raise ReportError(f"Did not found xlsx files matching the pattern: {XLSX_FILENAME_DATE_PATTERNS[level]}")
 
         dfs = [pd.read_excel(f) for f in file_names]
         # strip empty spaces and check NaN emails
