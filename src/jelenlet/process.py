@@ -19,10 +19,10 @@ NAME = "Teljes név"
 XLSX_FILENAME_DATA_CUSTOM_PATTERN = r"Egyéb próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"
 
 XLSX_FILENAME_DATE_PATTERNS = {
-    "kezdo": re.compile(r"Kezdős? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"),
-    "kozep": re.compile(r"Középhaladós? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"),
-    "halado": re.compile(r"Haladós? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"),
-    "egyeb": re.compile(XLSX_FILENAME_DATA_CUSTOM_PATTERN),
+    "kezdo": re.compile(r"Kezdős? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx", re.IGNORECASE),
+    "kozep": re.compile(r"Középhaladós? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx", re.IGNORECASE),
+    "halado": re.compile(r"Haladós? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx", re.IGNORECASE),
+    "egyeb": re.compile(XLSX_FILENAME_DATA_CUSTOM_PATTERN, re.IGNORECASE),
 }
 # Example file name: 'Középhaladós próba - 2024. 09. 09. (válaszok).xlsx'
 
@@ -30,6 +30,8 @@ XLSX_FILENAME_DATE_PATTERNS = {
 def process(folder: Path, EMAIL_NAMES_DATABASE, level) -> pd.DataFrame:
     def read_dataframes() -> tuple[list[pd.DataFrame], list[str]]:
         file_names: list[str] = [os.path.join(folder, f) for f in os.listdir(folder) if XLSX_FILENAME_DATE_PATTERNS[level].match(f)]
+        print(f"Found {len(file_names)} files.")
+
         dfs = [pd.read_excel(f) for f in file_names]
         # strip empty spaces and check NaN emails
         for df, file_name in zip(dfs, file_names):
