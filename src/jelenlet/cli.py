@@ -3,18 +3,17 @@ import argparse
 
 from jelenlet.process import process
 from jelenlet.excel_export import to_excel
-from jelenlet.process import REPORT_PREFIX
 from jelenlet.errors import ReportError
 from jelenlet.database import read_email_name_database
 
 
 def main():
     try:
-        data_loc, output_dir = parse_args()
+        data_loc, output_dir, level = parse_args()
         # only add email address - name pairs, if names, or emails need to be fixed:
-        collective_df = process(data_loc, read_email_name_database())
+        collective_df = process(data_loc, read_email_name_database(), level)
         collective_df.reset_index(inplace=True)
-        output_file_name = output_dir.joinpath(f"{REPORT_PREFIX}_osszegzes_{Path(data_loc).name}.xlsx")
+        output_file_name = output_dir.joinpath(f"{level}_proba_osszegzes_{Path(data_loc).name}.xlsx")
         print(f"Saving report to {output_file_name}")
         to_excel(output_file_name, collective_df)
         print("Done. Bye! :)\n")
@@ -22,7 +21,7 @@ def main():
         print(e)
 
 
-def parse_args() -> tuple[Path, Path]:
+def parse_args() -> tuple[Path, Path, str]:
     parser = argparse.ArgumentParser(description="Jelenléti adatok feldolgozása és Excel export készítés")
     parser.add_argument(
         "folder",
@@ -35,6 +34,14 @@ def parse_args() -> tuple[Path, Path]:
         default=Path("reports"),
         help=("Kimeneti mappa az összefoglaló Excel fájlhoz " "(alapértelmezett: ./reports)"),
     )
+
+    parser.add_argument(
+        "--szint",
+        choices=["kezdo", "kozep", "halado", "egyeb"],
+        default="kozep",
+        help="Csoport szintje: kezdo | kozep | halado | egyeb (alapértelmezett: kozep)",
+    )
+
     args = parser.parse_args()
 
     if not args.folder.exists():
@@ -46,7 +53,7 @@ def parse_args() -> tuple[Path, Path]:
     # kimeneti mappa létrehozása
     args.out.mkdir(parents=True, exist_ok=True)
 
-    return args.folder, args.out
+    return args.folder, args.out, args.szint
 
 
 if __name__ == "__main__":

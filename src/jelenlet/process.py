@@ -13,14 +13,23 @@ from jelenlet.fixer import can_fix_names, catch_email_typos
 # Constants
 EMAIL = "E-mail-cím"  # column names in the xlsx files
 NAME = "Teljes név"
-XLSX_FILENAME_DATE_PATTERN = re.compile(r"Középhaladós próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx")
+
+
+# Pattern for not the usual 3 group levels. Override before run with necessary pattern.
+XLSX_FILENAME_DATA_CUSTOM_PATTERN = r"Egyéb próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"
+
+XLSX_FILENAME_DATE_PATTERNS = {
+    "kezdo": re.compile(r"Kezdős? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"),
+    "kozep": re.compile(r"Középhaladós? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"),
+    "halado": re.compile(r"Haladós? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"),
+    "egyeb": re.compile(XLSX_FILENAME_DATA_CUSTOM_PATTERN),
+}
 # Example file name: 'Középhaladós próba - 2024. 09. 09. (válaszok).xlsx'
-REPORT_PREFIX = "kozephalado_proba"  # Kimenet fájl fog így kezdődni.
 
 
-def process(folder: Path, EMAIL_NAMES_DATABASE) -> pd.DataFrame:
+def process(folder: Path, EMAIL_NAMES_DATABASE, level) -> pd.DataFrame:
     def read_dataframes() -> tuple[list[pd.DataFrame], list[str]]:
-        file_names: list[str] = [os.path.join(folder, f) for f in os.listdir(folder) if XLSX_FILENAME_DATE_PATTERN.match(f)]
+        file_names: list[str] = [os.path.join(folder, f) for f in os.listdir(folder) if XLSX_FILENAME_DATE_PATTERNS[level].match(f)]
         dfs = [pd.read_excel(f) for f in file_names]
         # strip empty spaces
         for df in dfs:
@@ -65,7 +74,7 @@ def process(folder: Path, EMAIL_NAMES_DATABASE) -> pd.DataFrame:
 
     # r"D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz\Középhaladós próba - 2025. 09. 29. (válaszok).xlsx"
     def find_date(file_path):
-        match = XLSX_FILENAME_DATE_PATTERN.search(file_path)
+        match = XLSX_FILENAME_DATE_PATTERNS[level].search(file_path)
         if match is None:
             raise ReportError(f"No date found in path: {file_path}")
         y, m, d = (int(x) for x in match.groups())
