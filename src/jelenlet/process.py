@@ -27,6 +27,22 @@ XLSX_FILENAME_DATE_PATTERNS = {
 # Example file name: 'Középhaladós próba - 2024. 09. 09. (válaszok).xlsx'
 
 
+def check__alternative_column_names(file_name: str, df: pd.DataFrame):
+    EMAIL_ALTERNATIVES = ["Email Address", "Email", "E-mail", "e-mail"]
+    if EMAIL not in df.columns:
+        for col in EMAIL_ALTERNATIVES:
+            if col in df.columns:
+                df[EMAIL] = df[col]
+                break
+
+    if EMAIL in df.columns and NAME in df.columns and sum(1 for c in df.columns if c == NAME) == 1:
+        pass
+    else:
+        raise ReportError(
+            f"{file_name} format was not proper. XLSX file needs 1 email column called '{EMAIL}', 1 name column called '{NAME}' only"
+        )
+
+
 def process(folder: Path, EMAIL_NAMES_DATABASE, level) -> pd.DataFrame:
     def read_dataframes() -> tuple[list[pd.DataFrame], list[str]]:
         file_names: list[str] = [os.path.join(folder, f) for f in os.listdir(folder) if XLSX_FILENAME_DATE_PATTERNS[level].match(f)]
@@ -37,8 +53,14 @@ def process(folder: Path, EMAIL_NAMES_DATABASE, level) -> pd.DataFrame:
         dfs = [pd.read_excel(f) for f in file_names]
         # strip empty spaces and check NaN emails
         for df, file_name in zip(dfs, file_names):
+            check__alternative_column_names(file_name, df)
             df[EMAIL] = df[EMAIL].str.strip()
             df[NAME] = df[NAME].str.strip()
+            # check for Nan names
+            nan_mask = df[NAME].isna()
+            if nan_mask.any():
+                print(f"[WARNING] NaN - empty names found in file: {file_name}")
+                df[NAME].fillna("ISMERETLEN", inplace=True)
             # check for NaN email addresses
             nan_mask = df[EMAIL].isna()
             if nan_mask.any():
