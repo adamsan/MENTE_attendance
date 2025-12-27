@@ -13,6 +13,7 @@ from jelenlet.fixer import can_fix_names, catch_email_typos, name_to_dummy_email
 # Constants
 EMAIL = "E-mail-cím"  # column names in the xlsx files
 NAME = "Teljes név"
+JOSSZ = "Jössz próbára?"
 
 
 # Pattern for not the usual 3 group levels. Override before run with necessary pattern.
@@ -133,6 +134,8 @@ def process(folder: Path, EMAIL_NAMES_DATABASE, level) -> pd.DataFrame:
         pairs = sorted(zip(file_names, dfs), key=lambda p: find_date(p[0]))
         for file_name, df in pairs:
             event_date = find_date(file_name)
+            if JOSSZ in df.columns:
+                df = df[df[JOSSZ].str.lower() != "nem"]  # Filter out, "Jössz próbára?" -> Nem rows
             emails_of_attendees = set(df[EMAIL].to_numpy())
             data[event_date] = ["X" if email in emails_of_attendees else "_" for email in emails]
 
