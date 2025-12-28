@@ -4,14 +4,14 @@ import argparse
 from jelenlet.process import process
 from jelenlet.excel_export import to_excel
 from jelenlet.errors import ReportError
-from jelenlet.database import read_email_name_database
+from jelenlet.database import Database
 
 
 def main():
     try:
         data_loc, output_dir, level = parse_args()
         # only add email address - name pairs, if names, or emails need to be fixed:
-        collective_df = process(data_loc, read_email_name_database(), level)
+        collective_df = process(data_loc, Database(), level)
         collective_df.reset_index(inplace=True)
         output_file_name = output_dir.joinpath(f"{level}_proba_osszegzes_{Path(data_loc).name}.xlsx")
         print(f"Saving report to {output_file_name}")

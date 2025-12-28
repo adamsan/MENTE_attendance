@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from jelenlet.paths import POSSIBLE_NAMES_CSV
 from jelenlet.errors import ReportError
-from jelenlet.database import db_append
+from jelenlet.database import Database
 
 
 @cache
@@ -20,7 +20,8 @@ def read_allowed_names() -> set[str]:
         return names
 
 
-def fix_name(names, email, EMAIL_NAMES_DATABASE) -> list[str]:
+def fix_name(names, email, db: Database) -> list[str]:
+    EMAIL_NAMES_DATABASE = db.read_email_name_database()
     print(f"Attempting to fix names: {names}")
     # check in database:
     if email and email in EMAIL_NAMES_DATABASE:
@@ -40,27 +41,27 @@ def fix_name(names, email, EMAIL_NAMES_DATABASE) -> list[str]:
         result = [names[v.index(True)]]
         print(f"\tResolving with: {result} reason:[only one last christian name detected]")
         print("\tIf incorrect, add either of following lines to EMAIL_NAME_DATABASE")
-        db_append(f"\n# Resolving with: {result} reason:[only one last christian name detected]")
+        db.db_append(f"\n# Resolving with: {result} reason:[only one last christian name detected]")
         for n in names:
             print(f"\t{email} = {n}")
-            db_append(("" if n == result[0] else "# ") + f"{email} = {n}")
+            db.db_append(("" if n == result[0] else "# ") + f"{email} = {n}")
         return result
 
     print(f"ACTION REQUIRED: Could not autofix names: {names}")
     print("\tAdd either of following lines to EMAIL_NAME_DATABASE dictionary:")
-    db_append("\n# Uncomment one of these:")
+    db.db_append("\n# Uncomment one of these:")
     for n in names:
         print(f"\t\t{email} = {n}")
-        db_append(f"# {email} = {n}")
+        db.db_append(f"# {email} = {n}")
     return names
 
 
-def can_fix_names(email_names, EMAIL_NAMES_DATABASE) -> bool:
+def can_fix_names(email_names, db: Database) -> bool:
     # If one email address has multiple names -> problem: capitalization, accented letters, typos, different name variations
     fixed = {}
     for email, names in email_names.items():
         if len(names) > 1:
-            fixed[email] = fix_name(names, email, EMAIL_NAMES_DATABASE)
+            fixed[email] = fix_name(names, email, db)
     email_names.update(fixed)
 
     if any(len(names) > 1 for _, names in email_names.items()):
@@ -69,7 +70,8 @@ def can_fix_names(email_names, EMAIL_NAMES_DATABASE) -> bool:
     return False
 
 
-def catch_email_typos(email_names, EMAIL_NAMES_DATABASE) -> tuple[dict[str, str], bool]:
+def catch_email_typos(email_names, db: Database) -> tuple[dict[str, str], bool]:
+    EMAIL_NAMES_DATABASE = db.read_email_name_database()
     name_emails = defaultdict(list)
     wrong_right_emails = {}
     for e, ns in email_names.items():
@@ -80,10 +82,10 @@ def catch_email_typos(email_names, EMAIL_NAMES_DATABASE) -> tuple[dict[str, str]
             if all(e not in EMAIL_NAMES_DATABASE for e in emails):
                 print(f"Problem found:'{name}' has multiple email addresses: {emails}")
                 print("\tAdd either of following lines to EMAIL_NAME_DATABASE:")
-                db_append("\n# Uncomment (at least) one of these lines:")
+                db.db_append("\n# Uncomment (at least) one of these lines:")
                 for e in emails:
                     print(f"{e} = {name}")
-                    db_append(f"# {e} = {name}")
+                    db.db_append(f"# {e} = {name}")
                 errors_found = True
             else:  # email-name is already in EMAIL_NAME_DATABASE dict
                 valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE]

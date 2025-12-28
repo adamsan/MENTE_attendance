@@ -1,26 +1,33 @@
 from jelenlet.paths import DATA_DIR
+from pathlib import Path
 
 EMAILS_DB_FILE = DATA_DIR.joinpath("database.ini")
 
 
-def create_if_not_exists():
-    if not EMAILS_DB_FILE.exists():
-        EMAILS_DB_FILE.write_text("# TODO: add <email> = <name> lines here\n#Lines beginning with # are comments, they can be removed.\n\n")
+class Database:
+    def __init__(self, db_file: Path = EMAILS_DB_FILE) -> None:
+        self.DB_FILE = db_file
+        if not self.DB_FILE.exists():
+            self.DB_FILE.write_text(
+                "# TODO: add <email> = <name> lines here\n#Lines beginning with # are comments, they can be removed.\n\n"
+            )
+
+    def read_email_name_database(self) -> dict[str, str]:
+        with open(self.DB_FILE, encoding="utf-8") as f:
+            lines = (line.strip() for line in f.readlines() if "[" not in line)  # ignore sections
+
+        lines = (line for line in lines if line)  # ignore empty lines
+        uncommented_pairs = (line.split("=") for line in lines if not _is_comment(line))  # ignore comments
+        return {k.strip(): v.strip() for k, v in uncommented_pairs}
+
+    def db_append(self, line: str):
+        with open(self.DB_FILE, encoding="utf-8", mode="a") as f:
+            print(line, file=f)
 
 
 def _is_comment(line: str):
     line = line.strip()
     return line.startswith("#") or line.startswith(";")
-
-
-def read_email_name_database() -> dict[str, str]:
-    create_if_not_exists()
-    with open(EMAILS_DB_FILE, encoding="utf-8") as f:
-        lines = (line.strip() for line in f.readlines() if "[" not in line)  # ignore sections
-
-    lines = (line for line in lines if line)  # ignore empty lines
-    uncommented_pairs = (line.split("=") for line in lines if not _is_comment(line))  # ignore comments
-    return {k.strip(): v.strip() for k, v in uncommented_pairs}
 
 
 def db_append(line: str):
