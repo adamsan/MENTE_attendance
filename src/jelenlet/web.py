@@ -3,10 +3,13 @@ import streamlit as st
 import pandas as pd
 import tempfile
 import shutil
+import os
 from io import BytesIO
 from pathlib import Path
 from typing import Literal
 from enum import Enum
+from datetime import datetime, timedelta
+
 
 from jelenlet.process import process
 from jelenlet.excel_export import to_excel
@@ -124,6 +127,17 @@ def cleanup():
         shutil.rmtree(st.session_state.tmp)
     else:
         print(f"Session tmp not in ./tmp? Cleanup did not happen... {st.session_state.tmp}")
+
+    # Delete old dirs in ./tmp:
+    for child in Path("tmp").iterdir():
+        mtime = child.stat().st_mtime
+        age: timedelta = datetime.now() - datetime.fromtimestamp(mtime)
+        print(f"{child} age: {age}")
+        if age > timedelta(hours=6):
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                os.remove(child)
     st.rerun()
 
 
