@@ -32,3 +32,32 @@ def test_ok_case():
     # cleanup
     os.remove(output_dir / file_name)
     os.remove(db_path)
+
+
+@pytest.mark.filterwarnings("ignore:Conditional Formatting extension is not supported:UserWarning")
+def test_name_typo_case():
+    # Name variation: based on valid christian names, fixer should guess the correct version, and save it to db.
+    # Görbe Tamás - Tamás Görbe
+
+    # setup
+    base_dir = Path("tests/data/name_typo")
+    input_dir = base_dir / "input"
+    output_dir = base_dir / "actual"
+    expected_dir = base_dir / "expected"
+    db_path = base_dir / "database.ini"
+
+    db = Database(db_path)
+    file_name = "kozep_proba_osszegzes_input.xlsx"
+
+    run_program(input_dir, output_dir, "kozep", db)
+
+    # tests
+    assert db.read_email_name_database() == {"gorbe.tamas89@gmail.com": "Görbe Tamás"}  # Assert:
+
+    expected_df = load_xlsx(expected_dir / file_name)
+    actual_df = load_xlsx(output_dir / file_name)
+    pd.testing.assert_frame_equal(expected_df, actual_df)  # Assert, generated xlsx is as expected
+
+    # cleanup
+    os.remove(output_dir / file_name)
+    os.remove(db_path)
