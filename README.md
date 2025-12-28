@@ -192,3 +192,6 @@ Done. Bye! :)
 ### Fejlesztőknek
 
 Tesztek futtatása: `uv run pytest -v`
+
+- verbose: `-v`
+- don't suppress print: `-s`

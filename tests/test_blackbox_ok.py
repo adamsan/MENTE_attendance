@@ -1,9 +1,34 @@
+import pytest
+import os
 import pandas as pd
 from jelenlet.cli import run_program
 from jelenlet.database import Database
 from pathlib import Path
 
 
+def load_xlsx(path: Path):
+    return pd.read_excel(path)
+
+
+@pytest.mark.filterwarnings("ignore:Conditional Formatting extension is not supported:UserWarning")
 def test_ok_case():
-    run_program(Path("tests/data/ok/input"), Path("tests/data/ok/actual"), "kozep", Database(Path("tests/data/ok/database.ini")))
-    assert True
+    # setup
+    input_dir = Path("tests/data/ok/input")
+    expected_dir = Path("tests/data/ok/expected")
+    output_dir = Path("tests/data/ok/actual")
+    db_path = Path("tests/data/ok/database.ini")
+    db = Database(db_path)
+    file_name = "kozep_proba_osszegzes_input.xlsx"
+
+    run_program(input_dir, output_dir, "kozep", db)
+
+    # tests
+    assert db.read_email_name_database() == {}  # Assert: DB is empty
+
+    expected_df = load_xlsx(expected_dir / file_name)
+    actual_df = load_xlsx(output_dir / file_name)
+    pd.testing.assert_frame_equal(expected_df, actual_df)  # Assert, generated xlsx is as expected
+
+    # cleanup
+    os.remove(output_dir / file_name)
+    os.remove(db_path)
