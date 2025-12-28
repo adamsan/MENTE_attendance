@@ -79,29 +79,13 @@ def upload_ui():
                 collective_df.reset_index(inplace=True)
                 output_file_name = Path(tmp).joinpath(f"{level}_proba_osszegzes_{Path(tmp).name}.xlsx")
                 to_excel(output_file_name, collective_df)
-                download_clicked = add_download_button_xlsx(output_file_name)
-                if download_clicked:
-                    st.session_state.state = "DOWNLOAD"
+                st.session_state.output_file = output_file_name
+                st.session_state.collective_dataframe = collective_df
+                st.session_state.state = "DOWNLOAD"
+                st.rerun()
             except ReportError:
                 st.session_state.state = "FIX_ERRORS"
                 st.rerun()
-        # with tempfile.TemporaryDirectory(prefix="tmp_uploaded_files_", dir="./tmp", delete=True) as tmp:
-        #     copy_to(tmp, uploaded_files)
-        #     db = Database()
-        #     try:
-        #         collective_df = process(Path(tmp), db, level)
-        #         collective_df.reset_index(inplace=True)
-        #         output_file_name = Path(tmp).joinpath(f"{level}_proba_osszegzes_{Path(tmp).name}.xlsx")
-        #         to_excel(output_file_name, collective_df)
-        #         add_download_button_xlsx(output_file_name)
-        #     except ReportError:
-        #         new_lines_str = st.text_area("Database:", value="".join(db.read_all_lines()), height="content")
-        #         new_lines = [a + "\n" for a in new_lines_str.split("\n")]
-        #         db.write_all_lines(new_lines)
-
-        # for file in uploaded_files:
-        #     st.write(f"- {file.name}")
-        #     st.write(f"{file}")
 
 
 def fix_errors_ui():
@@ -125,24 +109,30 @@ def fix_errors_ui():
                 output_file_name = Path(tmp).joinpath(f"{level}_proba_osszegzes_{Path(tmp).name}.xlsx")
                 to_excel(output_file_name, collective_df)
                 st.session_state.output_file = output_file_name
+                st.session_state.collective_dataframe = collective_df
                 st.session_state.state = "DOWNLOAD"
                 st.rerun()
-                # add_download_button_xlsx(output_file_name)
             except ReportError:
                 st.session_state.state = "FIX_ERRORS"
                 st.rerun()
 
 
 def download_ui():
-    st.write("Ments el a létrehozott összesítőt")
+    st.write("Mentsd el a létrehozott összesítőt:")
     clicked = add_download_button_xlsx(st.session_state.output_file)
+    st.dataframe(st.session_state.collective_dataframe)
     if clicked:
         cleanup()
 
 
 def cleanup():
-    # st.session_state == "UPLOAD"
-    pass
+    st.session_state.state = "UPLOAD"
+    print(st.session_state.tmp)
+    if Path("tmp").absolute() == Path(st.session_state.tmp).parent.absolute():
+        shutil.rmtree(st.session_state.tmp)
+    else:
+        print(f"Session tmp not in ./tmp? Cleanup did not happen... {st.session_state.tmp}")
+    st.rerun()
 
 
 def main():
@@ -151,8 +141,6 @@ def main():
 
     if "state" not in st.session_state:
         st.session_state.state = "UPLOAD"
-
-    st.success(st.session_state.state)
 
     if st.session_state.state == "UPLOAD":
         upload_ui()
