@@ -1,24 +1,58 @@
 import streamlit as st
 
+import pandas as pd
+from io import BytesIO
+from pathlib import Path
+from typing import Literal
+from jelenlet.process import process
+from jelenlet.excel_export import to_excel
+from jelenlet.errors import ReportError
+from jelenlet.database import Database
+
+CsoportType = Literal["kezdo", "kozep", "halado", "egyeb"]
+
 
 def run():
-    import streamlit.web.cli as stcli
+    """CLI entry point for the web app."""
+    import subprocess
+    import sys
 
-    stcli.main(["run", "src/jelenlet/web.py", "--server.runOnSave", "true", "--server.port", "8555"])
+    # Run streamlit with the web app
+    subprocess.run([sys.executable, "-m", "streamlit", "run", "src/jelenlet/web.py", "--server.runOnSave", "true", "--server.port", "8555"])
 
 
-st.set_page_config(page_title="MENTE - jelenléti összefoglaló")
-st.write("# MENTE - jelenléti összefoglaló")
-submitted = False
-with st.form("step_1"):
-    st.write("### Táblázatok feltöltése")
-    st.segmented_control("Csoport", ["kezdo", "kozep", "halado", "egyeb"], default="kozep")
+def add_download_button_xlsx(file: Path):
+    # Download button with xlsx file
+    if not file.name.endswith("xlsx"):
+        return
+    with open(file, mode="rb") as f:
+        b = BytesIO()
+        b.writelines(f.readlines())
+    st.download_button("Letöltés", icon="📥 ", data=b, file_name="file.name")
 
-    uploaded_files = st.file_uploader("Részvétel", accept_multiple_files=True, type="xlsx")
-    with st.popover("Elvárt formátum", type="secondary", icon="❓"):
-        st.write("Excel (`.xlsx`) fájlok:")
-        st.write("Oszlopok: `Időbélyeg | E-mail-cím | Teljes név | Jössz próbára?`")
 
-    submitted = st.form_submit_button("Feltöltés")
-if submitted:
-    print(uploaded_files)
+def main():
+    st.set_page_config(page_title="MENTE - jelenléti összefoglaló")
+    st.write("# MENTE - jelenléti összefoglaló")
+    submitted = False
+
+    with st.form("step_1"):
+        st.write("### Táblázatok feltöltése")
+        st.segmented_control("Csoport", ["kezdo", "kozep", "halado", "egyeb"], default="kozep")
+
+        uploaded_files = st.file_uploader("Részvétel", accept_multiple_files=True, type="xlsx")
+        with st.popover("Elvárt formátum", type="secondary", icon="❓"):
+            st.write("Excel (`.xlsx`) fájlok:")
+            st.write("Oszlopok: `Időbélyeg | E-mail-cím | Teljes név | Jössz próbára?`")
+
+        submitted = st.form_submit_button("Feltöltés", icon="📤")
+
+    if submitted:
+        st.write(f"Feltöltött fájlok: {len(uploaded_files)}")
+        for file in uploaded_files:
+            st.write(f"- {file.name}")
+            st.write(f"{file}")
+
+
+if __name__ == "__main__":
+    main()
