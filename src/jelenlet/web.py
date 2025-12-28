@@ -74,7 +74,7 @@ def upload_ui():
         with tempfile.TemporaryDirectory(prefix="tmp_uploaded_files_", dir="./tmp", delete=False) as tmp:
             copy_to(tmp, uploaded_files)
             st.session_state.tmp = tmp
-            db = Database()
+            db = Database(Path(tmp).parent / f"{level}.database.ini")
             st.session_state.db = db
             try_to_generate_report(tmp, db, level)
 
@@ -99,7 +99,8 @@ def fix_errors_ui():
     st.write("## Hibajavítás")
     st.write(
         " - A helyes bejegyzéseket kommenteld ki (töröld ki előlük `#` jelet)\n"
-        " - a rosszakat kommenteld (legyen előttük `#` jel), vagy töröld"
+        " - A rosszakat kommenteld (legyen előttük `#` jel), vagy töröld\n"
+        " - Mentés után görgess le, lehetnek új javítani való értékek"
     )
     with st.form("step_2"):
         new_lines_str = st.text_area("Database:", value="".join(db.read_all_lines()), height="content")
@@ -130,6 +131,8 @@ def cleanup():
 
     # Delete old dirs in ./tmp:
     for child in Path("tmp").iterdir():
+        if child.name.startswith("."):  # don't delete dot files, .gitkeep, .gitignore, etc...
+            return
         mtime = child.stat().st_mtime
         age: timedelta = datetime.now() - datetime.fromtimestamp(mtime)
         print(f"{child} age: {age}")
