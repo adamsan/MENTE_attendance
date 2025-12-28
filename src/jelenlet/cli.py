@@ -1,17 +1,24 @@
 from pathlib import Path
 import argparse
+from typing import Literal
 
 from jelenlet.process import process
 from jelenlet.excel_export import to_excel
 from jelenlet.errors import ReportError
 from jelenlet.database import Database
 
+CsoportType = Literal["kezdo", "kozep", "halado", "egyeb"]
+
 
 def main():
+    data_loc, output_dir, level = parse_args()
+    run_program(data_loc, output_dir, level, Database())  # 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
+
+
+def run_program(data_loc: Path, output_dir: Path, level: CsoportType, db: Database) -> None:
     try:
-        data_loc, output_dir, level = parse_args()
         # only add email address - name pairs, if names, or emails need to be fixed:
-        collective_df = process(data_loc, Database(), level)
+        collective_df = process(data_loc, db, level)
         collective_df.reset_index(inplace=True)
         output_file_name = output_dir.joinpath(f"{level}_proba_osszegzes_{Path(data_loc).name}.xlsx")
         print(f"Saving report to {output_file_name}")
@@ -21,7 +28,7 @@ def main():
         print(e)
 
 
-def parse_args() -> tuple[Path, Path, str]:
+def parse_args() -> tuple[Path, Path, CsoportType]:
     parser = argparse.ArgumentParser(description="Jelenléti adatok feldolgozása és Excel export készítés")
     parser.add_argument(
         "folder",
@@ -57,4 +64,4 @@ def parse_args() -> tuple[Path, Path, str]:
 
 
 if __name__ == "__main__":
-    main()  # 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
+    main()
