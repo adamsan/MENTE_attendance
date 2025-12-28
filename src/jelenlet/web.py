@@ -44,7 +44,7 @@ def add_download_button_xlsx(file: Path) -> bool:
     with open(file, mode="rb") as f:
         b = BytesIO()
         b.writelines(f.readlines())
-    return st.download_button("Letöltés", icon="📥", data=b, file_name=file.name)
+    return st.download_button("Letöltés", icon="📥", data=b, file_name=file.name, key="download_xlsx_btn")
 
 
 def copy_to(dir, uploaded_files):
@@ -115,10 +115,9 @@ def fix_errors_ui():
 
 def download_ui():
     st.write("Mentsd el a létrehozott összesítőt:")
-    clicked = add_download_button_xlsx(st.session_state.output_file)
+    add_download_button_xlsx(st.session_state.output_file)
     st.dataframe(st.session_state.collective_dataframe)
-    if clicked:
-        cleanup()
+    st.button("Új feldolgozás", key="new_run_btn", on_click=cleanup)
 
 
 def cleanup():
