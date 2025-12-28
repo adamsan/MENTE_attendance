@@ -24,6 +24,16 @@ class Database:
         with open(self.DB_FILE, encoding="utf-8", mode="a") as f:
             print(line, file=f)
 
+    def read_all_lines(self):
+        with open(self.DB_FILE, encoding="utf-8") as f:
+            return f.readlines()
+
+    def write_all_lines(self, lines: list[str]):
+        print("WRITNIG ALL LINES:::::")
+        print(lines[:10])
+        with open(self.DB_FILE, encoding="utf-8", mode="w") as f:
+            f.writelines(lines)
+
 
 def _is_comment(line: str):
     line = line.strip()
