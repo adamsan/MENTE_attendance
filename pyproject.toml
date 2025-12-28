@@ -19,9 +19,8 @@ dependencies = [
 package = true
 
 [dependency-groups]
-dev = [
-    "pytest>=9.0.2",
-]
+dev = ["pytest>=9.0.2"]
 
 [project.scripts]
 jelenlet = "jelenlet.cli:main"
+jelenlet-web = "jelenlet.web:run"

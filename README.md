@@ -195,3 +195,6 @@ Tesztek futtatása: `uv run pytest -v`
 
 - verbose: `-v`
 - don't suppress print: `-s`
+
+Webes verzió futtatása:
+`uv run jelenlet-web`
