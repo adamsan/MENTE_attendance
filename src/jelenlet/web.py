@@ -54,38 +54,41 @@ def copy_to(dir, uploaded_files):
 
 def upload_ui():
     submitted = False
-    if not submitted:
-        with st.form("step_1"):
-            st.write("### Táblázatok feltöltése")
-            level = st.segmented_control("Csoport", ["kezdo", "kozep", "halado", "egyeb"], default="kozep")
-            st.session_state.level = level
-            left, right = st.columns([7, 1])
-            uploaded_files = left.file_uploader("Részvételi táblázatok", accept_multiple_files=True, type="xlsx")
-            with right.popover("", type="tertiary", icon="❓"):
-                st.write("Excel (`.xlsx`) fájlok elvárt formája:")
-                st.write("Oszlopok: `Időbélyeg | E-mail-cím | Teljes név | Jössz próbára?`")
+    with st.form("step_1"):
+        st.write("### Táblázatok feltöltése")
+        level = st.segmented_control("Csoport", ["kezdo", "kozep", "halado", "egyeb"], default="kozep")
+        st.session_state.level = level
+        left, right = st.columns([7, 1])
+        uploaded_files = left.file_uploader("Részvételi táblázatok", accept_multiple_files=True, type="xlsx")
+        with right.popover("", type="tertiary", icon="❓"):
+            st.write("Excel (`.xlsx`) fájlok elvárt formája:")
+            st.write("Oszlopok: `Időbélyeg | E-mail-cím | Teljes név | Jössz próbára?`")
 
-            submitted = st.form_submit_button("Feltöltés", icon="📤")
+        submitted = st.form_submit_button("Feltöltés", icon="📤")
 
-    if submitted and len(uploaded_files) > 0:
+    if submitted and uploaded_files and len(uploaded_files) > 0:
         st.write(f"Feltöltött fájlok: {len(uploaded_files)}")
         with tempfile.TemporaryDirectory(prefix="tmp_uploaded_files_", dir="./tmp", delete=False) as tmp:
             copy_to(tmp, uploaded_files)
             st.session_state.tmp = tmp
             db = Database()
             st.session_state.db = db
-            try:
-                collective_df = process(Path(tmp), db, level)
-                collective_df.reset_index(inplace=True)
-                output_file_name = Path(tmp).joinpath(f"{level}_proba_osszegzes_{Path(tmp).name}.xlsx")
-                to_excel(output_file_name, collective_df)
-                st.session_state.output_file = output_file_name
-                st.session_state.collective_dataframe = collective_df
-                st.session_state.state = "DOWNLOAD"
-                st.rerun()
-            except ReportError:
-                st.session_state.state = "FIX_ERRORS"
-                st.rerun()
+            try_to_generate_report(tmp, db, level)
+
+
+def try_to_generate_report(tmp, db, level):
+    try:
+        collective_df = process(Path(tmp), db, level)
+        collective_df.reset_index(inplace=True)
+        output_file_name = Path(tmp).joinpath(f"{level}_proba_osszegzes_{Path(tmp).name}.xlsx")
+        to_excel(output_file_name, collective_df)
+        st.session_state.output_file = output_file_name
+        st.session_state.collective_dataframe = collective_df
+        st.session_state.state = "DOWNLOAD"
+        st.rerun()
+    except ReportError:
+        st.session_state.state = "FIX_ERRORS"
+        st.rerun()
 
 
 def fix_errors_ui():
@@ -103,18 +106,7 @@ def fix_errors_ui():
             db.write_all_lines(new_lines)
             level = st.session_state.level
             tmp = st.session_state.tmp
-            try:
-                collective_df = process(Path(tmp), db, level)
-                collective_df.reset_index(inplace=True)
-                output_file_name = Path(tmp).joinpath(f"{level}_proba_osszegzes_{Path(tmp).name}.xlsx")
-                to_excel(output_file_name, collective_df)
-                st.session_state.output_file = output_file_name
-                st.session_state.collective_dataframe = collective_df
-                st.session_state.state = "DOWNLOAD"
-                st.rerun()
-            except ReportError:
-                st.session_state.state = "FIX_ERRORS"
-                st.rerun()
+            try_to_generate_report(tmp, db, level)
 
 
 def download_ui():
