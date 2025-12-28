@@ -21,3 +21,5 @@ data/database.ini
 
 tests/data/**/actual/*
 tests/data/**/database.ini
+
+tmp/
