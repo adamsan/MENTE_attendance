@@ -18,7 +18,7 @@ JOSSZ = "Jössz próbára?"
 
 
 # Pattern for not the usual 3 group levels. Override before run with necessary pattern.
-XLSX_FILENAME_DATA_CUSTOM_PATTERN = r"Egyéb próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"
+XLSX_FILENAME_DATA_CUSTOM_PATTERN = r".*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"
 
 XLSX_FILENAME_DATE_PATTERNS = {
     "kezdo": re.compile(r"Kezdős? próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx", re.IGNORECASE),
