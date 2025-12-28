@@ -188,3 +188,7 @@ A program kimenetének az alja:
 Saving report to my_reports\kozephalado_proba_osszegzes_2024_25_osz.xlsx
 Done. Bye! :)
 ```
+
+### Fejlesztőknek
+
+Tesztek futtatása: `uv run pytest -v`
