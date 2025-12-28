@@ -59,10 +59,10 @@ def upload_ui():
             st.write("### Táblázatok feltöltése")
             level = st.segmented_control("Csoport", ["kezdo", "kozep", "halado", "egyeb"], default="kozep")
             st.session_state.level = level
-
-            uploaded_files = st.file_uploader("Részvétel", accept_multiple_files=True, type="xlsx")
-            with st.popover("Elvárt formátum", type="secondary", icon="❓"):
-                st.write("Excel (`.xlsx`) fájlok:")
+            left, right = st.columns([7, 1])
+            uploaded_files = left.file_uploader("Részvételi táblázatok", accept_multiple_files=True, type="xlsx")
+            with right.popover("", type="tertiary", icon="❓"):
+                st.write("Excel (`.xlsx`) fájlok elvárt formája:")
                 st.write("Oszlopok: `Időbélyeg | E-mail-cím | Teljes név | Jössz próbára?`")
 
             submitted = st.form_submit_button("Feltöltés", icon="📤")
@@ -134,9 +134,10 @@ def fix_errors_ui():
 
 
 def download_ui():
-    st.write("Download your file")
-    add_download_button_xlsx(st.session_state.output_file)
-    cleanup()
+    st.write("Ments el a létrehozott összesítőt")
+    clicked = add_download_button_xlsx(st.session_state.output_file)
+    if clicked:
+        cleanup()
 
 
 def cleanup():
