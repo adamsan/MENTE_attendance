@@ -3,6 +3,7 @@ import streamlit as st
 import tempfile
 import shutil
 import os
+import zipfile
 from io import BytesIO
 from pathlib import Path
 from typing import Literal
@@ -16,6 +17,7 @@ from jelenlet.database import Database
 
 CsoportType = Literal["kezdo", "kozep", "halado", "egyeb"]
 GenerationState = Literal["UPLOAD", "FIX_ERRORS", "DOWNLOAD"]
+
 
 def run():
     """CLI entry point for the web app."""
@@ -36,12 +38,31 @@ def add_download_button_xlsx(file: Path) -> bool:
     return st.download_button("Letöltés", icon=":material/download_2:", data=b, file_name=file.name, key="download_xlsx_btn")
 
 
-def copy_to(dir, uploaded_files):
+def extract_xls(zip_file, dest) -> list[Path]:
+    extracted_files: list[Path] = []
+    with zipfile.ZipFile(zip_file) as zf:
+        for member in zf.namelist():
+            if not member.lower().endswith(".xlsx"):
+                continue
+            dest_file = Path(dest) / Path(member).name  # zip slip protection
+            with zf.open(member) as source, open(dest_file, "wb") as target:
+                shutil.copyfileobj(source, target)
+                extracted_files.append(dest_file)
+    return extracted_files
+
+
+def copy_or_extract_to(dir, uploaded_files) -> list[Path]:
+    copied_files: list[Path] = []
     for file in uploaded_files:
-        file_dest = Path(dir) / file.name
-        # st.write(file_dest)
-        with open(file_dest, "wb") as f:
-            f.write(file.getbuffer())
+        if file.name.lower().endswith("zip"):
+            copied_files.extend(extract_xls(file, dir))
+        else:
+            file_dest = Path(dir) / file.name
+            # st.write(file_dest)
+            with open(file_dest, "wb") as f:
+                f.write(file.getbuffer())
+                copied_files.append(file_dest)
+    return copied_files
 
 
 def upload_ui():
@@ -51,7 +72,7 @@ def upload_ui():
         level = st.segmented_control("Csoport", ["kezdo", "kozep", "halado", "egyeb"], default="kozep")
         st.session_state.level = level
         left, right = st.columns([7, 1])
-        uploaded_files = left.file_uploader("Részvételi táblázatok", accept_multiple_files=True, type="xlsx")
+        uploaded_files = left.file_uploader("Részvételi táblázatok", accept_multiple_files=True, type=["xlsx", "zip"])
         with right.popover("", type="tertiary", icon=":material/info:"):
             st.write("Excel (`.xlsx`) fájlok elvárt formája:")
             st.write("Oszlopok: `Időbélyeg | E-mail-cím | Teljes név | Jössz próbára?`")
@@ -61,7 +82,10 @@ def upload_ui():
     if submitted and uploaded_files and len(uploaded_files) > 0:
         st.write(f"Feltöltött fájlok: {len(uploaded_files)}")
         with tempfile.TemporaryDirectory(prefix="tmp_uploaded_files_", dir="./tmp", delete=False) as tmp:
-            copy_to(tmp, uploaded_files)
+            xlsx_recieved = copy_or_extract_to(tmp, uploaded_files)
+            if len(xlsx_recieved) < 1:
+                st.write("Nem találtam .xlsx fájlt a feltöltésben! :( ")
+                return
             st.session_state.tmp = tmp
             db = Database(Path(tmp).parent / f"{level}.database.ini")
             st.session_state.db = db
