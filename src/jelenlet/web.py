@@ -44,7 +44,7 @@ def add_download_button_xlsx(file: Path) -> bool:
     with open(file, mode="rb") as f:
         b = BytesIO()
         b.writelines(f.readlines())
-    return st.download_button("Letöltés", icon="📥", data=b, file_name=file.name, key="download_xlsx_btn")
+    return st.download_button("Letöltés", icon=":material/download_2:", data=b, file_name=file.name, key="download_xlsx_btn")
 
 
 def copy_to(dir, uploaded_files):
@@ -63,11 +63,11 @@ def upload_ui():
         st.session_state.level = level
         left, right = st.columns([7, 1])
         uploaded_files = left.file_uploader("Részvételi táblázatok", accept_multiple_files=True, type="xlsx")
-        with right.popover("", type="tertiary", icon="❓"):
+        with right.popover("", type="tertiary", icon=":material/info:"):
             st.write("Excel (`.xlsx`) fájlok elvárt formája:")
             st.write("Oszlopok: `Időbélyeg | E-mail-cím | Teljes név | Jössz próbára?`")
 
-        submitted = st.form_submit_button("Feltöltés", icon="📤")
+        submitted = st.form_submit_button("Feltöltés", icon=":material/upload_2:")
 
     if submitted and uploaded_files and len(uploaded_files) > 0:
         st.write(f"Feltöltött fájlok: {len(uploaded_files)}")
