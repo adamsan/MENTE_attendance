@@ -118,7 +118,7 @@ def fix_errors_ui():
     with st.form("step_2"):
         new_lines_str = st.text_area("Database:", value="".join(db.read_all_lines()), height="content")
         new_lines = [a + "\n" for a in new_lines_str.split("\n")]
-        saved = st.form_submit_button("Mentés :)")
+        saved = st.form_submit_button("Mentés :)", icon=":material/save_as:")
         if saved:
             db.write_all_lines(new_lines)
             level = st.session_state.level
@@ -130,7 +130,7 @@ def download_ui():
     st.write("Mentsd el a létrehozott összesítőt:")
     add_download_button_xlsx(st.session_state.output_file)
     st.dataframe(st.session_state.collective_dataframe)
-    st.button("Új feldolgozás", key="new_run_btn", on_click=cleanup)
+    st.button("Új feldolgozás", key="new_run_btn", on_click=cleanup, icon=":material/replay:")
 
 
 def cleanup():

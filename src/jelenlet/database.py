@@ -17,7 +17,8 @@ class Database:
             lines = (line.strip() for line in f.readlines() if "[" not in line)  # ignore sections
 
         lines = (line for line in lines if line)  # ignore empty lines
-        uncommented_pairs = (line.split("=") for line in lines if not _is_comment(line))  # ignore comments
+        # ignore comments and lines not containing =
+        uncommented_pairs = (line.split("=") for line in lines if not _is_comment(line) and "=" in line)
         return {k.strip(): v.strip() for k, v in uncommented_pairs}
 
     def db_append(self, line: str):
@@ -29,8 +30,6 @@ class Database:
             return f.readlines()
 
     def write_all_lines(self, lines: list[str]):
-        print("WRITNIG ALL LINES:::::")
-        print(lines[:10])
         with open(self.DB_FILE, encoding="utf-8", mode="w") as f:
             f.writelines(lines)
 
