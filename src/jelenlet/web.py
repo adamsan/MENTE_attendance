@@ -1,13 +1,11 @@
 import streamlit as st
 
-import pandas as pd
 import tempfile
 import shutil
 import os
 from io import BytesIO
 from pathlib import Path
 from typing import Literal
-from enum import Enum
 from datetime import datetime, timedelta
 
 
@@ -17,16 +15,7 @@ from jelenlet.errors import ReportError
 from jelenlet.database import Database
 
 CsoportType = Literal["kezdo", "kozep", "halado", "egyeb"]
-
-
 GenerationState = Literal["UPLOAD", "FIX_ERRORS", "DOWNLOAD"]
-
-
-# class State(Enum):
-#     UPLOAD = "UPLOAD"
-#     FIX_ERRORS = "FIX_ERRORS"
-#     DOWNLOAD = "DOWNLOAD"
-
 
 def run():
     """CLI entry point for the web app."""
