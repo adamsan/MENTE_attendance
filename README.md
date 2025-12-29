@@ -189,12 +189,15 @@ Saving report to my_reports\kozephalado_proba_osszegzes_2024_25_osz.xlsx
 Done. Bye! :)
 ```
 
+### Webes verzió
+
+Futtatása: `uv run jelenlet-web` paranccsal
+
+![web_process_video](docs/mente_jelenlet4.gif)
+
 ### Fejlesztőknek
 
 Tesztek futtatása: `uv run pytest -v`
 
 - verbose: `-v`
 - don't suppress print: `-s`
-
-Webes verzió futtatása:
-`uv run jelenlet-web`
