@@ -150,7 +150,7 @@ def now_to_file_name_part():
 
 
 def main():
-    st.set_page_config(page_title="MENTE - jelenléti összefoglaló")
+    st.set_page_config(page_title="MENTE - jelenléti összefoglaló", page_icon="data/mente_logo_32.png")
     st.write("# MENTE - jelenléti összefoglaló")
 
     if "state" not in st.session_state:
