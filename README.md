@@ -191,7 +191,11 @@ Done. Bye! :)
 
 ### Webes verzió
 
+A programhoz van webes felület is, ez excel fájlokon túl tömörített `.zip` fájlokat is képes fogadni.
+
 Futtatása: `uv run jelenlet-web` paranccsal
+
+A használatát az alábbi videó demonstrálja:
 
 ![web_process_video](docs/mente_jelenlet4.gif)
 
