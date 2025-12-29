@@ -70,6 +70,17 @@ def can_fix_names(email_names, db: Database) -> bool:
     return False
 
 
+def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
+    emails = list(set(emails))
+    all_same_username = len(set(e.split("@")[0] for e in emails)) == 1
+    domains = set(e.split("@")[1] for e in emails)
+    if all_same_username and len(domains) >= 2 and "gmail.com" in domains:
+
+        guess = [e for e in emails if e.lower().endswith("@gmail.com")][0]
+        return (guess, [e for e in emails if e != guess])
+    return (None, emails)  # could not guess
+
+
 def catch_email_typos(email_names, db: Database) -> tuple[dict[str, str], bool]:
     EMAIL_NAMES_DATABASE = db.read_email_name_database()
     name_emails = defaultdict(list)
@@ -80,12 +91,20 @@ def catch_email_typos(email_names, db: Database) -> tuple[dict[str, str], bool]:
     for name, emails in name_emails.items():
         if len(emails) > 1:
             if all(e not in EMAIL_NAMES_DATABASE for e in emails):
-                print(f"Problem found:'{name}' has multiple email addresses: {emails}")
-                print("\tAdd either of following lines to EMAIL_NAME_DATABASE:")
-                db.db_append("\n# Uncomment (at least) one of these lines:")
-                for e in emails:
-                    print(f"{e} = {name}")
-                    db.db_append(f"# {e} = {name}")
+                guess, mistyped_emails = check_gmail(emails)
+                if guess:
+                    db.db_append(f"\n# Resolving with: {guess} reason:[probably mistyped @gmail address]")
+                    db.db_append(f"{guess} = {name}")
+                    for e in mistyped_emails:
+                        print(f"{e} = {name}")
+                        db.db_append(f"# {e} = {name}")
+                else:
+                    print(f"Problem found:'{name}' has multiple email addresses: {emails}")
+                    print("\tAdd either of following lines to EMAIL_NAME_DATABASE:")
+                    db.db_append("\n# Uncomment (at least) one of these lines:")
+                    for e in emails:
+                        print(f"{e} = {name}")
+                        db.db_append(f"# {e} = {name}")
                 errors_found = True
             else:  # email-name is already in EMAIL_NAME_DATABASE dict
                 valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE]
