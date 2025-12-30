@@ -6,10 +6,13 @@ from collections import defaultdict
 import pandas as pd
 from pathlib import Path
 import os
+from typing import Literal
 
 from jelenlet.errors import ReportError
 from jelenlet.fixer import can_fix_names, catch_email_typos, name_to_dummy_email
 from jelenlet.database import Database
+
+CsoportType = Literal["kezdo", "kozep", "halado", "egyeb"]
 
 # Constants
 EMAIL = "E-mail-cím"  # column names in the xlsx files
@@ -52,7 +55,7 @@ def check__alternative_column_names(file_name: str, df: pd.DataFrame):
         )
 
 
-def process(folder: Path, db: Database, level) -> pd.DataFrame:
+def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) -> tuple[pd.DataFrame, Path]:
 
     EMAIL_NAMES_DATABASE = db.read_email_name_database()
 
@@ -119,12 +122,8 @@ def process(folder: Path, db: Database, level) -> pd.DataFrame:
         return dfs, file_names, email_names_full
 
     # r"D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz\Középhaladós próba - 2025. 09. 29. (válaszok).xlsx"
-    def find_date(file_path):
-        match = XLSX_FILENAME_DATE_PATTERNS[level].search(file_path)
-        if match is None:
-            raise ReportError(f"No date found in path: {file_path}")
-        y, m, d = (int(x) for x in match.groups())
-        return datetime.date(y, m, d)
+    def find_date(path: str) -> datetime.date:
+        return find_date_by_pattern(path, XLSX_FILENAME_DATE_PATTERNS[level])
 
     def construct_collective_dataframe(file_names: list[str], dfs: list[pd.DataFrame], email_names_full: dict[str, str]):
         emails, names = list(zip(*email_names_full.items()))
@@ -158,4 +157,33 @@ def process(folder: Path, db: Database, level) -> pd.DataFrame:
     locale.setlocale(locale.LC_COLLATE, "hu_HU.UTF-8")
     # df_summary.sort_values(by=['Név'], inplace=True)
     df_summary.sort_values(by="Név", key=lambda s: s.map(locale.strxfrm), inplace=True)
-    return df_summary
+    return df_summary, generate_output_filename(file_names, level, output_dir)
+
+
+def generate_output_filename(file_names: list[str], level, dir: Path) -> Path:
+    pat = XLSX_FILENAME_DATE_PATTERNS[level]
+    dates_in_filenames = [find_date_by_pattern(p, pat) for p in file_names]
+    print("Generate output file names")
+    print(f"min date = {min(dates_in_filenames)}")
+
+    first, last = date_to_str(min(dates_in_filenames)), date_to_str(max(dates_in_filenames))
+    output_file_name = Path(dir).joinpath(f"{level}_proba_osszegzes_{first}-{last}_[{now_to_file_name_part()}].xlsx")
+    return output_file_name
+
+
+def date_to_str(d: datetime.date):
+    return d.strftime("%Y_%m_%d")
+
+
+def now_to_file_name_part():
+    dt = datetime.datetime.now()
+    date_part = dt.strftime("%Y_%m_%d__%H_%M")
+    return date_part
+
+
+def find_date_by_pattern(path: str, pattern) -> datetime.date:
+    match = pattern.search(path)
+    if match is None:
+        raise ReportError(f"No date found in path: {path}")
+    y, m, d = (int(x) for x in match.groups())
+    return datetime.date(y, m, d)

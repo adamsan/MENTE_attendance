@@ -20,7 +20,7 @@ def read_allowed_names() -> set[str]:
         return names
 
 
-def fix_name(names, email, db: Database) -> list[str]:
+def fix_name(names: list[str], email: str, db: Database) -> list[str]:
     EMAIL_NAMES_DATABASE = db.read_email_name_database()
     print(f"Attempting to fix names: {names}")
     # check in database:

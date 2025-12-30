@@ -94,9 +94,8 @@ def upload_ui():
 
 def try_to_generate_report(tmp, db, level):
     try:
-        collective_df = process(Path(tmp), db, level)
+        collective_df, output_file_name = process(Path(tmp), db, level, tmp)
         collective_df.reset_index(inplace=True)
-        output_file_name = Path(tmp).joinpath(f"{level}_proba_osszegzes_{now_to_file_name_part()}.xlsx")
         to_excel(output_file_name, collective_df)
         st.session_state.output_file = output_file_name
         st.session_state.collective_dataframe = collective_df
@@ -154,12 +153,6 @@ def cleanup():
             else:
                 os.remove(child)
     st.rerun()
-
-
-def now_to_file_name_part():
-    dt = datetime.now()
-    date_part = dt.strftime(f"%Y_%m_%d__%H_%M")
-    return date_part
 
 
 def main():
