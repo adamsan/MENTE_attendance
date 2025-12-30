@@ -144,11 +144,11 @@ def cleanup():
     # Delete old dirs in ./tmp:
     for child in Path("tmp").iterdir():
         if child.name.startswith("."):  # don't delete dot files, .gitkeep, .gitignore, etc...
-            return
+            continue
         mtime = child.stat().st_mtime
         age: timedelta = datetime.now() - datetime.fromtimestamp(mtime)
         print(f"{child} age: {age}")
-        if age > timedelta(hours=6):
+        if age > timedelta(hours=36):
             if child.is_dir():
                 shutil.rmtree(child)
             else:
