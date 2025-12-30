@@ -23,3 +23,5 @@ tests/data/**/actual/*
 tests/data/**/database.ini
 
 tmp/
+
+my_notes
