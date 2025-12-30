@@ -153,7 +153,6 @@ def cleanup():
                 shutil.rmtree(child)
             else:
                 os.remove(child)
-    st.rerun()
 
 
 def main():
