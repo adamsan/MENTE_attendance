@@ -2,7 +2,7 @@ import csv
 import re
 import string
 from functools import cache
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 from jelenlet.paths import POSSIBLE_NAMES_CSV
 from jelenlet.errors import ReportError
@@ -36,32 +36,49 @@ def fix_name(names: list[str], email: str, db: Database) -> list[str]:
         return [string.capwords(names[0])]
 
     # last name is a valid first name in hungarian
-    v = [n.split()[-1] in read_allowed_names() for n in names]
+    names_unique = list(set(names))
+    v = [n.split()[-1] in read_allowed_names() for n in names_unique]
     if sum(1 if x else 0 for x in v) == 1:  # if there is only one such name variation, that has a valid first name
-        result = [names[v.index(True)]]
+        result = [names_unique[v.index(True)]]
         print(f"\tResolving with: {result} reason:[only one last christian name detected]")
         print("\tIf incorrect, add either of following lines to EMAIL_NAME_DATABASE")
         db.db_append(f"\n# Resolving with: {result} reason:[only one last christian name detected]")
-        for n in names:
+        for n in names_unique:
             print(f"\t{email} = {n}")
             db.db_append(("" if n == result[0] else "# ") + f"{email} = {n}")
         return result
 
+    # check for majorities of entry
+    occurances = Counter(names).most_common()
+    most = occurances.pop(0)
+    rest_occurance = sum(o[1] for o in occurances)
+    confidence_factor = 1
+    if most[1] > confidence_factor * rest_occurance:
+        print(f"\tResolving with: {most[0]} reason:[based on occurance {most[1]} to {rest_occurance}]")
+        print("\tIf incorrect, add either of following lines to EMAIL_NAME_DATABASE")
+        db.db_append(f"\n#Resolving with: {most[0]} reason:[based on occurance {most[1]} to {rest_occurance}]")
+        for n in set(names):
+            print(f"\t{email} = {n}")
+            db.db_append(("" if n == most[0] else "# ") + f"{email} = {n}")
+        return [most[0]]
+
     print(f"ACTION REQUIRED: Could not autofix names: {names}")
     print("\tAdd either of following lines to EMAIL_NAME_DATABASE dictionary:")
     db.db_append("\n# Uncomment one of these:")
-    for n in names:
+    for n in set(names):
         print(f"\t\t{email} = {n}")
         db.db_append(f"# {email} = {n}")
-    return names
+    return list(set(names))
 
 
-def can_fix_names(email_names, db: Database) -> bool:
+def can_fix_names(email_names: dict[str, list[str]], db: Database) -> bool:
     # If one email address has multiple names -> problem: capitalization, accented letters, typos, different name variations
     fixed = {}
     for email, names in email_names.items():
-        if len(names) > 1:
+        if len(set(names)) > 1:
             fixed[email] = fix_name(names, email, db)
+        else:
+            fixed[email] = [names[0]]  # all entered names for email are the same, no typo
     email_names.update(fixed)
 
     if any(len(names) > 1 for _, names in email_names.items()):
@@ -71,6 +88,7 @@ def can_fix_names(email_names, db: Database) -> bool:
 
 
 def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
+    print(f"check_gmail: {emails}")
     emails = list(set(emails))
     all_same_username = len(set(e.split("@")[0] for e in emails)) == 1
     domains = set(e.split("@")[1] for e in emails if "@" in e)
@@ -80,7 +98,7 @@ def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
     return (None, emails)  # could not guess
 
 
-def catch_email_typos(email_names, db: Database) -> tuple[dict[str, str], bool]:
+def catch_email_typos(email_names: dict[str, list[str]], db: Database) -> tuple[dict[str, str], bool]:
     EMAIL_NAMES_DATABASE = db.read_email_name_database()
     name_emails = defaultdict(list)
     wrong_right_emails = {}

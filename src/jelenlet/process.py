@@ -91,8 +91,8 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
         email_names = defaultdict(list)
         for df in dataframes:
             for email, name in zip(df[EMAIL].to_numpy(), df[NAME].to_numpy()):
-                if name not in email_names[email]:
-                    email_names[email].append(name)
+                # if name not in email_names[email]:
+                email_names[email].append(name)
         return email_names
 
     def change_names_in_dataframes(email_names, dfs):
