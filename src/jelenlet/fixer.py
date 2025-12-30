@@ -73,9 +73,8 @@ def can_fix_names(email_names, db: Database) -> bool:
 def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
     emails = list(set(emails))
     all_same_username = len(set(e.split("@")[0] for e in emails)) == 1
-    domains = set(e.split("@")[1] for e in emails)
+    domains = set(e.split("@")[1] for e in emails if "@" in e)
     if all_same_username and len(domains) >= 2 and "gmail.com" in domains:
-
         guess = [e for e in emails if e.lower().endswith("@gmail.com")][0]
         return (guess, [e for e in emails if e != guess])
     return (None, emails)  # could not guess
