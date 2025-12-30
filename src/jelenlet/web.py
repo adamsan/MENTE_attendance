@@ -69,7 +69,7 @@ def upload_ui():
     submitted = False
     with st.form("step_1"):
         st.write("### Táblázatok feltöltése")
-        level = st.segmented_control("Csoport", ["kezdo", "kozep", "halado", "egyeb"], default="kozep")
+        level = st.segmented_control("Csoport", ["kezdo", "kozep", "halado", "egyeb"], default="kozep") or "egyeb"
         st.session_state.level = level
         left, right = st.columns([7, 1])
         uploaded_files = left.file_uploader("Részvételi táblázatok", accept_multiple_files=True, type=["xlsx", "zip"])
@@ -115,6 +115,7 @@ def fix_errors_ui():
         " - Mentés után görgess le, lehetnek új javítani való értékek"
     )
     with st.form("step_2"):
+        # text area can't have key - it will not load it's value properly
         new_lines_str = st.text_area("Database:", value="".join(db.read_all_lines()), height="content")
         new_lines = [a + "\n" for a in new_lines_str.split("\n")]
         saved = st.form_submit_button("Mentés :)", icon=":material/save_as:")

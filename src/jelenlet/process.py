@@ -163,9 +163,6 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
 def generate_output_filename(file_names: list[str], level, dir: Path) -> Path:
     pat = XLSX_FILENAME_DATE_PATTERNS[level]
     dates_in_filenames = [find_date_by_pattern(p, pat) for p in file_names]
-    print("Generate output file names")
-    print(f"min date = {min(dates_in_filenames)}")
-
     first, last = date_to_str(min(dates_in_filenames)), date_to_str(max(dates_in_filenames))
     output_file_name = Path(dir).joinpath(f"{level}_proba_osszegzes_{first}-{last}_[{now_to_file_name_part()}].xlsx")
     return output_file_name
