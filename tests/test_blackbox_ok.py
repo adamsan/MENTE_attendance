@@ -20,17 +20,19 @@ def test_ok_case():
     db = Database(db_path)
     file_name = "kozep_proba_osszegzes_input.xlsx"
 
-    run_program(input_dir, output_dir, "kozep", db)
+    output_file: Path | None = run_program(input_dir, output_dir, "kozep", db)
+    if not output_file:
+        raise RuntimeError("Output file was not generated!")
 
     # tests
     assert db.read_email_name_database() == {}  # Assert: DB is empty
 
     expected_df = load_xlsx(expected_dir / file_name)
-    actual_df = load_xlsx(output_dir / file_name)
+    actual_df = load_xlsx(output_file)
     pd.testing.assert_frame_equal(expected_df, actual_df)  # Assert, generated xlsx is as expected
 
     # cleanup
-    os.remove(output_dir / file_name)
+    os.remove(output_file)
     os.remove(db_path)
 
 
@@ -49,15 +51,17 @@ def test_name_typo_case():
     db = Database(db_path)
     file_name = "kozep_proba_osszegzes_input.xlsx"
 
-    run_program(input_dir, output_dir, "kozep", db)
+    output_file: Path | None = run_program(input_dir, output_dir, "kozep", db)
+    if not output_file:
+        raise RuntimeError("Output file was not generated!")
 
     # tests
     assert db.read_email_name_database() == {"gorbe.tamas89@gmail.com": "Görbe Tamás"}  # Assert:
 
     expected_df = load_xlsx(expected_dir / file_name)
-    actual_df = load_xlsx(output_dir / file_name)
+    actual_df = load_xlsx(output_file)
     pd.testing.assert_frame_equal(expected_df, actual_df)  # Assert, generated xlsx is as expected
 
     # cleanup
-    os.remove(output_dir / file_name)
+    os.remove(output_file)
     os.remove(db_path)

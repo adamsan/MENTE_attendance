@@ -12,7 +12,7 @@ def main():
     run_program(data_loc, output_dir, level, Database())  # 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
 
 
-def run_program(data_loc: Path, output_dir: Path, level: CsoportType, db: Database) -> None:
+def run_program(data_loc: Path, output_dir: Path, level: CsoportType, db: Database) -> Path | None:
     try:
         # only add email address - name pairs, if names, or emails need to be fixed:
         collective_df, output_file_name = process(data_loc, db, level, output_dir)
@@ -20,8 +20,10 @@ def run_program(data_loc: Path, output_dir: Path, level: CsoportType, db: Databa
         print(f"Saving report to {output_file_name}")
         to_excel(output_file_name, collective_df)
         print("Done. Bye! :)\n")
+        return output_file_name
     except ReportError as e:
         print(e)
+        return None
 
 
 def parse_args() -> tuple[Path, Path, CsoportType]:
