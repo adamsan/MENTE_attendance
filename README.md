@@ -205,3 +205,9 @@ Tesztek futtatása: `uv run pytest -v`
 
 - verbose: `-v`
 - don't suppress print: `-s`
+
+Nyilvánossá tétel authentikációval:
+
+```sh
+$ ngrok http 8555 --url <ngrook dev url> --oauth=google --oauth-allow-email=<user_1>@gmail.com --oauth-allow-email=<user_2>@gmail.com
+```
