@@ -140,7 +140,7 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
             if JOSSZ in df.columns:
                 df = df[df[JOSSZ].str.lower() != "nem"]  # Filter out, "Jössz próbára?" -> Nem rows
             emails_of_attendees = set(df[EMAIL].to_numpy())
-            data[event_date] = ["X" if email in emails_of_attendees else "_" for email in emails]
+            data[event_date.strftime("%Y.%m.%d")] = ["X" if email in emails_of_attendees else "_" for email in emails]
 
             for email in emails_of_attendees:
                 email_attendance_count[email] += 1
