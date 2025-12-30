@@ -10,7 +10,7 @@ A program:
 
 - több Excel-fájlt feldolgoz egyszerre,
 - egységesíti a neveket és e-mail címeket,
-- egy **összefoglaló Excel riportot** hoz létre.
+- egy **összefoglaló Excel táblázatot** hoz létre.
 
 ---
 
