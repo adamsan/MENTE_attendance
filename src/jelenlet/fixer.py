@@ -62,14 +62,12 @@ def resolve_by_majority(email: str, names: list[str]) -> NameIssue | None:
     most = occurances.pop(0)
     rest_occurance = sum(o[1] for o in occurances)
     confidence_factor = 1
-    if most[1] > confidence_factor * rest_occurance:
+    if most[1] >= 2 and most[1] > confidence_factor * rest_occurance:
         return NameIssue(email, list(set(names)), most[0], f"based on occurance {most[1]} to {rest_occurance}")
     return None
 
 
 def detect_issue(email: str, names: list[str]) -> NameIssue | None:
-    if len(names) == 0:  # Question: is this even necessary, did we already fill empty names?
-        return NameIssue(email, [], email, f"Missing name for email: {email}")
     if len(set(names)) == 1:
         return None
     resolvers = [resolve_capitulization, resolve_only_one_allowed_christian_name, resolve_by_majority]
@@ -80,9 +78,8 @@ def detect_issue(email: str, names: list[str]) -> NameIssue | None:
     return NameIssue(email, list(set(names)), None, "ACTION REQUIRED: Could not make suggestion")
 
 
-def find_name_issues(email_names: dict[str, list[str]], db: Database) -> list[NameIssue]:
-    EMAIL_NAME_DB = db.read_email_name_database()
-    issues = (detect_issue(e, ns) for e, ns in email_names.items() if e not in EMAIL_NAME_DB)
+def find_name_issues(email_names: dict[str, list[str]], EMAIL_NAMES_DB: dict[str, str]) -> list[NameIssue]:
+    issues = (detect_issue(e, ns) for e, ns in email_names.items() if e not in EMAIL_NAMES_DB)
     return [i for i in issues if i]
 
 
@@ -93,7 +90,7 @@ def write_name_issues_to_db(issues: list[NameIssue], db: Database):
 
 
 def try_fix_name_issues(email_names: dict[str, list[str]], db: Database) -> dict[str, str]:
-    name_issues = find_name_issues(email_names, db)
+    name_issues = find_name_issues(email_names, db.read_email_name_database())
     if name_issues:
         write_name_issues_to_db(name_issues, db)
         raise ReportError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
@@ -139,7 +136,7 @@ def resolve_email_by_majority(name, emails) -> EmailIssue | None:
     most = occurances.pop(0)
     rest_occurance = sum(o[1] for o in occurances)
     confidence_factor = 1
-    if most[1] > confidence_factor * rest_occurance:
+    if most[1] >= 2 and most[1] > confidence_factor * rest_occurance:
         return EmailIssue(name, list(set(emails)), most[0], f"based on occurance {most[1]} to {rest_occurance}")
     return None
 
@@ -155,8 +152,8 @@ def detect_issue_email(name: str, emails: list[str]) -> EmailIssue | None:
     return EmailIssue(name, list(set(emails)), None, "ACTION REQUIRED: Could not make suggestion")
 
 
-def find_email_issues(name_emails: dict[str, list[str]], db: dict[str, str]):
-    issues = (detect_issue_email(n, es) for n, es in name_emails.items() if n not in db.values())
+def find_email_issues(name_emails: dict[str, list[str]], email_name_db: dict[str, str]):
+    issues = (detect_issue_email(n, es) for n, es in name_emails.items() if n not in email_name_db.values())
     return [i for i in issues if i]
 
 
