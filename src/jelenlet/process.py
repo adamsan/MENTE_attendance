@@ -9,7 +9,7 @@ import os
 from typing import Literal
 
 from jelenlet.errors import ReportError
-from jelenlet.fixer import try_fix_name_issues, catch_email_typos, name_to_dummy_email
+from jelenlet.fixer import try_fix_name_issues, try_fix_email_issues, name_to_dummy_email
 from jelenlet.database import Database
 
 CsoportType = Literal["kezdo", "kozep", "halado", "egyeb"]
@@ -111,13 +111,10 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
         print("-------")
         change_names_in_dataframes(email_name, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos
-        wrong_right_emails, email_name, email_errors = catch_email_typos(email_name, db)
-        if email_errors:
-            raise ReportError("Errors found during email checks. Add apropriate lines to email_name_database to continue. Aborting...")
-        change_emails_in_dataframes(wrong_right_emails, dfs)
+        wrong_right_emails, email_name = try_fix_email_issues(email_name, db)
 
-        email_names_full = {k: v for k, v in email_name.items()}  # full and fixed email-name dictionary
-        return dfs, file_names, email_names_full
+        change_emails_in_dataframes(wrong_right_emails, dfs)
+        return dfs, file_names, email_name
 
     # r"D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz\Középhaladós próba - 2025. 09. 29. (válaszok).xlsx"
     def find_date(path: str) -> datetime.date:
