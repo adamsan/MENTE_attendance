@@ -95,10 +95,9 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
                 email_names[email].append(name)
         return email_names
 
-    def change_names_in_dataframes(email_names, dfs):
-        email_names_db = {k: v[0] for k, v in email_names.items()}
+    def change_names_in_dataframes(email_name: dict[str, str], dfs: list[pd.DataFrame]):
         for df in dfs:
-            df[NAME] = df[EMAIL].map(email_names_db).fillna(df[NAME])
+            df[NAME] = df[EMAIL].map(email_name).fillna(df[NAME])
 
     def change_emails_in_dataframes(wrong_right_emails, dfs):
         for df in dfs:
@@ -108,16 +107,16 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
         dfs, file_names = read_dataframes()
         # try to catch name typos:
         email_names = build_journal(dfs)
-        email_names = try_fix_name_issues(email_names, db)
+        email_name = try_fix_name_issues(email_names, db)
         print("-------")
-        change_names_in_dataframes(email_names, dfs)  # Use email_names dict to fill up dataframes
+        change_names_in_dataframes(email_name, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos
-        wrong_right_emails, email_errors = catch_email_typos(email_names, db)
+        wrong_right_emails, email_errors = catch_email_typos(email_name, db)
         if email_errors:
             raise ReportError("Errors found during email checks. Add apropriate lines to email_name_database to continue. Aborting...")
         change_emails_in_dataframes(wrong_right_emails, dfs)
 
-        email_names_full = {k: v[0] for k, v in email_names.items()}  # full and fixed email-name dictionary
+        email_names_full = {k: v for k, v in email_name.items()}  # full and fixed email-name dictionary
         return dfs, file_names, email_names_full
 
     # r"D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz\Középhaladós próba - 2025. 09. 29. (válaszok).xlsx"

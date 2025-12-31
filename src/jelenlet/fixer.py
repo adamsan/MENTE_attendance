@@ -96,18 +96,17 @@ def write_name_issues_to_db(issues: list[NameIssue], db: Database):
             db.db_append(line)
 
 
-# TODO: returning dict values are 1 long lists. make it return dict[str, str]
-def try_fix_name_issues(email_names: dict[str, list[str]], db: Database) -> dict[str, list[str]]:
+def try_fix_name_issues(email_names: dict[str, list[str]], db: Database) -> dict[str, str]:
     name_issues = find_name_issues(email_names, db)
     if name_issues:
         write_name_issues_to_db(name_issues, db)
         raise ReportError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
 
     DB = db.read_email_name_database()
-    new_email_names = {}
+    new_email_name = {}
     for email in email_names:
-        new_email_names[email] = [DB[email]] if email in DB else [email_names[email][0]]
-    return new_email_names
+        new_email_name[email] = DB[email] if email in DB else email_names[email][0]
+    return new_email_name
 
 
 def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
@@ -121,12 +120,12 @@ def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
     return (None, emails)  # could not guess
 
 
-def catch_email_typos(email_names: dict[str, list[str]], db: Database) -> tuple[dict[str, str], bool]:
+def catch_email_typos(email_name: dict[str, str], db: Database) -> tuple[dict[str, str], bool]:
     EMAIL_NAMES_DATABASE = db.read_email_name_database()
     name_emails = defaultdict(list)
     wrong_right_emails = {}
-    for e, ns in email_names.items():
-        name_emails[ns[0]].append(e)
+    for e, n in email_name.items():
+        name_emails[n].append(e)
     errors_found = False
     for name, emails in name_emails.items():
         if len(emails) > 1:
@@ -153,7 +152,7 @@ def catch_email_typos(email_names: dict[str, list[str]], db: Database) -> tuple[
                     wrong_emails = {e for e in emails if e != valid_email}
                     for w in wrong_emails:
                         wrong_right_emails[w] = valid_email
-                        del email_names[w]  # modify email_names - remove wrong email address
+                        del email_name[w]  # modify email_names - remove wrong email address
                 elif len(valid_emails) > 1:
                     # handle, if we have two person with the same name / different email TODO: Do I need to do anything here?
                     print(f"Looks like different persons with the same name... {name} {valid_emails}")
