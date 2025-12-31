@@ -39,7 +39,7 @@ class NameIssue:
         return result
 
 
-def resolve_capitulization(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
+def resolve_capitulization(email: str, names: list[str]) -> NameIssue | None:
     lowercase_names_set = {n.lower() for n in names}
     if len(lowercase_names_set) == 1:
         suggestion = string.capwords(names[0])
@@ -47,7 +47,7 @@ def resolve_capitulization(email: str, names: list[str], EMAIL_NAME_DB: dict[str
     return None
 
 
-def resolve_only_one_allowed_christian_name(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
+def resolve_only_one_allowed_christian_name(email: str, names: list[str]) -> NameIssue | None:
     names_unique = list(set(names))
     # v[i] = True, if names_unique[i]'s last part is an allowed christian name
     v: list[bool] = [n.split()[-1] in read_allowed_names() for n in names_unique]
@@ -57,7 +57,7 @@ def resolve_only_one_allowed_christian_name(email: str, names: list[str], EMAIL_
     return None
 
 
-def resolve_by_majority(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
+def resolve_by_majority(email: str, names: list[str]) -> NameIssue | None:
     occurances = Counter(names).most_common()
     most = occurances.pop(0)
     rest_occurance = sum(o[1] for o in occurances)
@@ -67,18 +67,18 @@ def resolve_by_majority(email: str, names: list[str], EMAIL_NAME_DB: dict[str, s
     return None
 
 
-def resolve_giveup(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
+def resolve_giveup(email: str, names: list[str]) -> NameIssue | None:
     return NameIssue(email, list(set(names)), None, f"ACTION REQUIRED: Could not autofix names: {names}")
 
 
-def detect_issue(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
+def detect_issue(email: str, names: list[str]) -> NameIssue | None:
     if len(names) == 0:  # Question: is this even necessary, did we already fill empty names?
         return NameIssue(email, [], email, f"Missing name for email: {email}")
     if len(set(names)) == 1:
         return None
     resolvers = [resolve_capitulization, resolve_only_one_allowed_christian_name, resolve_by_majority, resolve_giveup]
     for resolver in resolvers:
-        issue = resolver(email, names, EMAIL_NAME_DB)
+        issue = resolver(email, names)
         if issue:
             return issue
     return None
@@ -86,7 +86,7 @@ def detect_issue(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) ->
 
 def find_name_issues(email_names: dict[str, list[str]], db: Database) -> list[NameIssue]:
     EMAIL_NAME_DB = db.read_email_name_database()
-    issues = (detect_issue(e, ns, EMAIL_NAME_DB) for e, ns in email_names.items() if e not in EMAIL_NAME_DB)
+    issues = (detect_issue(e, ns) for e, ns in email_names.items() if e not in EMAIL_NAME_DB)
     return [i for i in issues if i]
 
 
