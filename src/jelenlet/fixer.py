@@ -3,6 +3,7 @@ import re
 import string
 from functools import cache
 from collections import defaultdict, Counter
+from dataclasses import dataclass
 
 from jelenlet.paths import POSSIBLE_NAMES_CSV
 from jelenlet.errors import ReportError
@@ -20,71 +21,98 @@ def read_allowed_names() -> set[str]:
         return names
 
 
-def fix_name(names: list[str], email: str, db: Database) -> list[str]:
-    EMAIL_NAMES_DATABASE = db.read_email_name_database()
-    print(f"Attempting to fix names: {names}")
-    # check in database:
-    if email and email in EMAIL_NAMES_DATABASE:
-        result = [EMAIL_NAMES_DATABASE[email]]
-        print(f"\tResolving with: {result} reason:[email found in db]")
+@dataclass
+class NameIssue:
+    email: str
+    names: list[str]
+    suggestion: str | None
+    reason: str
+
+    def lines(self):
+        if self.suggestion:
+            result = [f"\n# Resolving with: [{self.suggestion}] reason:[{self.reason}]", f"{self.email} = {self.suggestion}"]
+        else:
+            result = ["\n# Uncomment one of these:"]
+        for n in set(self.names):
+            if n != self.suggestion:
+                result.append(f"# {self.email} = {n}")
         return result
-    # check for capitalization
+
+
+def resolve_capitulization(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
     lowercase_names_set = {n.lower() for n in names}
     if len(lowercase_names_set) == 1:
-        result = [string.capwords(names[0])]
-        print(f"\tResolving with:{result} [reason: uppercase - lowercase problem detected]")
-        return [string.capwords(names[0])]
+        suggestion = string.capwords(names[0])
+        return NameIssue(email, list(set(names)), suggestion, "simple uppercase - lowercase problem detected")
+    return None
 
-    # last name is a valid first name in hungarian
+
+def resolve_only_one_allowed_christian_name(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
     names_unique = list(set(names))
-    v = [n.split()[-1] in read_allowed_names() for n in names_unique]
+    # v[i] = True, if names_unique[i]'s last part is an allowed christian name
+    v: list[bool] = [n.split()[-1] in read_allowed_names() for n in names_unique]
     if sum(1 if x else 0 for x in v) == 1:  # if there is only one such name variation, that has a valid first name
-        result = [names_unique[v.index(True)]]
-        print(f"\tResolving with: {result} reason:[only one last christian name detected]")
-        print("\tIf incorrect, add either of following lines to EMAIL_NAME_DATABASE")
-        db.db_append(f"\n# Resolving with: {result} reason:[only one last christian name detected]")
-        for n in names_unique:
-            print(f"\t{email} = {n}")
-            db.db_append(("" if n == result[0] else "# ") + f"{email} = {n}")
-        return result
+        suggestion = names_unique[v.index(True)]
+        return NameIssue(email, list(set(names)), suggestion, "only one last christian name detected")
+    return None
 
-    # check for majorities of entry
+
+def resolve_by_majority(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
     occurances = Counter(names).most_common()
     most = occurances.pop(0)
     rest_occurance = sum(o[1] for o in occurances)
     confidence_factor = 1
     if most[1] > confidence_factor * rest_occurance:
-        print(f"\tResolving with: {most[0]} reason:[based on occurance {most[1]} to {rest_occurance}]")
-        print("\tIf incorrect, add either of following lines to EMAIL_NAME_DATABASE")
-        db.db_append(f"\n#Resolving with: {most[0]} reason:[based on occurance {most[1]} to {rest_occurance}]")
-        for n in set(names):
-            print(f"\t{email} = {n}")
-            db.db_append(("" if n == most[0] else "# ") + f"{email} = {n}")
-        return [most[0]]
-
-    print(f"ACTION REQUIRED: Could not autofix names: {names}")
-    print("\tAdd either of following lines to EMAIL_NAME_DATABASE dictionary:")
-    db.db_append("\n# Uncomment one of these:")
-    for n in set(names):
-        print(f"\t\t{email} = {n}")
-        db.db_append(f"# {email} = {n}")
-    return list(set(names))
+        return NameIssue(email, list(set(names)), most[0], f"based on occurance {most[1]} to {rest_occurance}")
+    return None
 
 
-def can_fix_names(email_names: dict[str, list[str]], db: Database) -> bool:
-    # If one email address has multiple names -> problem: capitalization, accented letters, typos, different name variations
+def resolve_giveup(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
+    return NameIssue(email, list(set(names)), None, f"ACTION REQUIRED: Could not autofix names: {names}")
+
+
+def detect_issue(email: str, names: list[str], EMAIL_NAME_DB: dict[str, str]) -> NameIssue | None:
+    if len(names) == 0:  # Question: is this even necessary, did we already fill empty names?
+        return NameIssue(email, [], email, f"Missing name for email: {email}")
+    if len(set(names)) == 1:
+        return None
+    resolvers = [resolve_capitulization, resolve_only_one_allowed_christian_name, resolve_by_majority, resolve_giveup]
+    for resolver in resolvers:
+        issue = resolver(email, names, EMAIL_NAME_DB)
+        if issue:
+            return issue
+    return None
+
+
+def find_name_issues(email_names: dict[str, list[str]], db: Database) -> list[NameIssue]:
+    EMAIL_NAME_DB = db.read_email_name_database()
+    issues = (detect_issue(e, ns, EMAIL_NAME_DB) for e, ns in email_names.items() if e not in EMAIL_NAME_DB)
+    return [i for i in issues if i]
+
+
+def write_name_issues_to_db(issues: list[NameIssue], db: Database):
+    for issue in issues:
+        for line in issue.lines():
+            db.db_append(line)
+
+
+def try_fix_name_issues(email_names: dict[str, list[str]], db: Database) -> None:
+    name_issues = find_name_issues(email_names, db)
+    if name_issues:
+        write_name_issues_to_db(name_issues, db)
+        raise ReportError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
+
     fixed = {}
+    DB = db.read_email_name_database()
     for email, names in email_names.items():
         if len(set(names)) > 1:
-            fixed[email] = fix_name(names, email, db)
+            fixed[email] = [DB[email]]
         else:
             fixed[email] = [names[0]]  # all entered names for email are the same, no typo
     email_names.update(fixed)
 
     if any(len(names) > 1 for _, names in email_names.items()):
-        print("Manual adjustment needed for EMAIL_NAME_DATABASE")
-        return True
-    return False
+        raise ReportError("Manual adjustment needed for EMAIL_NAME_DATABASE")
 
 
 def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:

@@ -9,7 +9,7 @@ import os
 from typing import Literal
 
 from jelenlet.errors import ReportError
-from jelenlet.fixer import can_fix_names, catch_email_typos, name_to_dummy_email
+from jelenlet.fixer import try_fix_name_issues, catch_email_typos, name_to_dummy_email
 from jelenlet.database import Database
 
 CsoportType = Literal["kezdo", "kozep", "halado", "egyeb"]
@@ -108,8 +108,7 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
         dfs, file_names = read_dataframes()
         # try to catch name typos:
         email_names = build_journal(dfs)
-        if can_fix_names(email_names, db):
-            raise ReportError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
+        try_fix_name_issues(email_names, db)
         print("-------")
         change_names_in_dataframes(email_names, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos
