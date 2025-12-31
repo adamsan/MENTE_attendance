@@ -138,7 +138,7 @@ def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
     return (None, emails)  # could not guess
 
 
-def catch_email_typos(email_name: dict[str, str], db: Database) -> tuple[dict[str, str], bool]:
+def catch_email_typos(email_name: dict[str, str], db: Database) -> tuple[dict[str, str], dict[str, str], bool]:
     EMAIL_NAMES_DATABASE = db.read_email_name_database()
     name_emails = defaultdict(list)
     wrong_right_emails = {}
@@ -170,13 +170,13 @@ def catch_email_typos(email_name: dict[str, str], db: Database) -> tuple[dict[st
                     wrong_emails = {e for e in emails if e != valid_email}
                     for w in wrong_emails:
                         wrong_right_emails[w] = valid_email
-                        del email_name[w]  # modify email_names - remove wrong email address
                 elif len(valid_emails) > 1:
                     # handle, if we have two person with the same name / different email TODO: Do I need to do anything here?
                     print(f"Looks like different persons with the same name... {name} {valid_emails}")
 
+    email_name_without_wrong = {e: n for e, n in email_name.items() if e not in wrong_right_emails}
     print(f"Wrong->Right email substitutions:{wrong_right_emails}")
-    return wrong_right_emails, errors_found
+    return wrong_right_emails, email_name_without_wrong, errors_found
 
 
 def name_to_dummy_email(name: str) -> str:
