@@ -108,7 +108,7 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
         dfs, file_names = read_dataframes()
         # try to catch name typos:
         email_names = build_journal(dfs)
-        try_fix_name_issues(email_names, db)
+        email_names = try_fix_name_issues(email_names, db)
         print("-------")
         change_names_in_dataframes(email_names, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos

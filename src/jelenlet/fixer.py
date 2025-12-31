@@ -96,23 +96,18 @@ def write_name_issues_to_db(issues: list[NameIssue], db: Database):
             db.db_append(line)
 
 
-def try_fix_name_issues(email_names: dict[str, list[str]], db: Database) -> None:
+# TODO: returning dict values are 1 long lists. make it return dict[str, str]
+def try_fix_name_issues(email_names: dict[str, list[str]], db: Database) -> dict[str, list[str]]:
     name_issues = find_name_issues(email_names, db)
     if name_issues:
         write_name_issues_to_db(name_issues, db)
         raise ReportError("Errors found during name checks. Add apropriate lines to EMAIL_NAME_DATABASE to continue. Aborting...")
 
-    fixed = {}
     DB = db.read_email_name_database()
-    for email, names in email_names.items():
-        if len(set(names)) > 1:
-            fixed[email] = [DB[email]]
-        else:
-            fixed[email] = [names[0]]  # all entered names for email are the same, no typo
-    email_names.update(fixed)
-
-    if any(len(names) > 1 for _, names in email_names.items()):
-        raise ReportError("Manual adjustment needed for EMAIL_NAME_DATABASE")
+    new_email_names = {}
+    for email in email_names:
+        new_email_names[email] = [DB[email]] if email in DB else [email_names[email][0]]
+    return new_email_names
 
 
 def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
