@@ -32,7 +32,7 @@ class NameIssue:
         if self.suggestion:
             result = [f"\n# Resolving with: [{self.suggestion}] reason:[{self.reason}]", f"{self.email} = {self.suggestion}"]
         else:
-            result = ["\n# Uncomment one of these:"]
+            result = [f"\n# Uncomment one of these. reason[{self.reason}]"]
         for n in set(self.names):
             if n != self.suggestion:
                 result.append(f"# {self.email} = {n}")
@@ -68,7 +68,7 @@ def resolve_by_majority(email: str, names: list[str]) -> NameIssue | None:
 
 
 def resolve_giveup(email: str, names: list[str]) -> NameIssue | None:
-    return NameIssue(email, list(set(names)), None, f"ACTION REQUIRED: Could not autofix names: {names}")
+    return NameIssue(email, list(set(names)), None, "ACTION REQUIRED: Could not make suggestion")
 
 
 def detect_issue(email: str, names: list[str]) -> NameIssue | None:
@@ -107,6 +107,24 @@ def try_fix_name_issues(email_names: dict[str, list[str]], db: Database) -> dict
     for email in email_names:
         new_email_name[email] = DB[email] if email in DB else email_names[email][0]
     return new_email_name
+
+
+@dataclass
+class EmailIssue:
+    name: str
+    emails: list[str]
+    suggestion: str | None
+    reason: str
+
+    def lines(self):
+        if self.suggestion:
+            result = [f"\n# Resolving with: [{self.suggestion}] reason:[{self.reason}]", f"{self.suggestion} = {self.name}"]
+        else:
+            result = ["\n# Uncomment one of these:"]
+        for e in set(self.emails):
+            if e != self.suggestion:
+                result.append(f"# {e} = {self.name}")
+        return result
 
 
 def check_gmail(emails: list[str]) -> tuple[str | None, list[str]]:
