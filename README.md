@@ -16,13 +16,9 @@ A program:
 
 ## Szükséges eszközök (egyszer kell megcsinálni)
 
-### Python **NEM szükséges külön telepíteni**
+Python-t **NEM szükséges külön telepíteni**
 
-A program az **uv** nevű eszközt használja, ami:
-
-- automatikusan letölti a szükséges Python verziót,
-- kezeli a függőségeket,
-- egyszerű futtatást tesz lehetővé.
+A program az **uv** nevű eszközt használja, ami automatikusan letölti a szükséges Python verziót, és kezeli a függőségeket.
 
 ---
 
@@ -49,35 +45,40 @@ A program az **uv** nevű eszközt használja, ami:
   uv --version
   ```
 
-  Valami ilyesmi választ jelzi, hogy sikerült a telepítés:
+  Valami ilyesmi választ jelzi, hogy sikerült a telepítés: `uv 0.9.15 (5eafae332 2025-12-02)`
 
-  ```bat
-  uv 0.9.15 (5eafae332 2025-12-02)
-  ```
-
-### Bemeneti adatok előkészítése
+### Bemeneti fájlok
 
 Hozz létre egy mappát, pl.: `D:/jelenleti_adatok/2024_25_osz/`
 Ide töltsd le/csomagold ki a jelenléti ív fájljait.
 
-```text
-Középhaladós próba - 2024. 09. 09. (válaszok).xlsx
-Középhaladós próba - 2024. 09. 16. (válaszok).xlsx
-etc...
-```
-
 **Fontos a fájlnév!**
 A program a fájlnévből dátumot keres, pontokkal elválasztva.
-Ezt a (reguláris kifejezést) mintát, ami az `src/jelenlet/process.py` fájl 19. során kell átírni, hogy megfeleljen a te fájl neveidnek.
+_Ezt a (reguláris kifejezést) mintát, ami az `src/jelenlet/process.py` fájl 24. során lehet átírni, ha ez szükséges (pl. másfajta fájlnevek vannak)._
 
-`XLSX_FILENAME_DATA_CUSTOM_PATTERN = r"Egyéb próba.*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"`
+`XLSX_FILENAME_DATA_CUSTOM_PATTERN = r".*(\d{4})\. ?(\d{1,2})\. ?(\d{1,2})\..*\.xlsx"`
 
-A csoport kapcsoló és a mappa neve fogja meghatározni, az elkészült összesítő fájl nevét.
-Lehetséges értékei: `kezdo, kozep, halado, egyeb`
+Az elkészült összesítő fájl neve a csoport kapcsoló értékeit (`kezdo, kozep, halado, egyeb`), az első és utolsó próba dátumát, illetve az összesítés létrehozásának idejét tartalmazza. Pl.: `kozep_proba_osszegzes_2025_09_08-2025_12_15_[2025_12_30__17_48].xlsx`
 
 ---
 
 ### A program futtatása
+
+#### Webes felület elindítása
+
+A programhoz van webes felület, ez excel fájlokon túl tömörített `.zip` fájlokat is képes fogadni.
+
+Parancssor megnyitása után menjünk a projekt mappába, ahová letöltöttük ezt a projektet: `cd D:/mente_jelenleti`
+
+Futtatása: `uv run jelenlet-web` paranccsal. Ezután megnyílk egy böngésző oldal a `localhost:8555` címen.
+
+#### Webes felület használata
+
+A használatát az alábbi videó demonstrálja:
+
+![web_process_video](docs/mente_jelenlet4.gif)
+
+#### Parancssoros felület használata
 
 Parancssor megnyitása után menjünk a projekt mappába, ahová letöltöttük ezt a projektet.
 
@@ -189,16 +190,6 @@ Saving report to my_reports\kozephalado_proba_osszegzes_2024_25_osz.xlsx
 Done. Bye! :)
 ```
 
-### Webes verzió
-
-A programhoz van webes felület is, ez excel fájlokon túl tömörített `.zip` fájlokat is képes fogadni.
-
-Futtatása: `uv run jelenlet-web` paranccsal
-
-A használatát az alábbi videó demonstrálja:
-
-![web_process_video](docs/mente_jelenlet4.gif)
-
 ### Fejlesztőknek
 
 Tesztek futtatása: `uv run pytest -v`
@@ -209,5 +200,5 @@ Tesztek futtatása: `uv run pytest -v`
 Nyilvánossá tétel authentikációval:
 
 ```sh
-$ ngrok http 8555 --url <ngrook dev url> --oauth=google --oauth-allow-email=<user_1>@gmail.com --oauth-allow-email=<user_2>@gmail.com
+ngrok http 8555 --url <ngrook dev url> --oauth=google --oauth-allow-email=<user_1>@gmail.com --oauth-allow-email=<user_2>@gmail.com
 ```
