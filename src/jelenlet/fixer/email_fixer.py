@@ -45,7 +45,7 @@ def resolve_email_by_majority(name, emails) -> EmailIssue | None:
 
 
 def detect_issue_email(name: str, emails: list[str]) -> EmailIssue | None:
-    if len(emails) == 1:
+    if len(set(emails)) == 1:
         return None
     resolvers = [resolve_email_gmail_typo, resolve_email_by_majority]
     for resolver in resolvers:
@@ -66,11 +66,15 @@ def write_email_issues_to_db(issues: list[EmailIssue], db: Database):
             db.db_append(line)
 
 
-def try_fix_email_issues(email_name: dict[str, str], db: Database) -> tuple[dict[str, str], dict[str, str]]:
+def try_fix_email_issues(
+    email_names: dict[str, list[str]], email_name: dict[str, str], db: Database
+) -> tuple[dict[str, str], dict[str, str]]:
     EMAIL_NAMES_DATABASE = db.read_email_name_database()
+
     name_emails = defaultdict(list)
-    for e, n in email_name.items():
-        name_emails[n].append(e)
+    for e, ns in email_names.items():
+        for n in ns:
+            name_emails[n].append(e)
 
     email_issues = find_email_issues(name_emails, EMAIL_NAMES_DATABASE)
     if email_issues:
@@ -79,6 +83,7 @@ def try_fix_email_issues(email_name: dict[str, str], db: Database) -> tuple[dict
 
     wrong_right_emails = {}
     for name, emails in name_emails.items():
+        emails = list(set(emails))
         if len(emails) > 1:
             valid_emails = [e for e in emails if e in EMAIL_NAMES_DATABASE]
             if len(valid_emails) == 1:

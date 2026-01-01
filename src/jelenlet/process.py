@@ -111,8 +111,7 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
         print("-------")
         change_names_in_dataframes(email_name, dfs)  # Use email_names dict to fill up dataframes
         # try to catch email typos
-        wrong_right_emails, email_name = try_fix_email_issues(email_name, db)
-
+        wrong_right_emails, email_name = try_fix_email_issues(email_names, email_name, db)
         change_emails_in_dataframes(wrong_right_emails, dfs)
         return dfs, file_names, email_name
 
