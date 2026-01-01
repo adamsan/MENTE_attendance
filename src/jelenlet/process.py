@@ -121,6 +121,8 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
         return find_date_by_pattern(path, XLSX_FILENAME_DATE_PATTERNS[level])
 
     def construct_collective_dataframe(file_names: list[str], dfs: list[pd.DataFrame], email_names_full: dict[str, str]):
+        warn_if_same_dates_in_file_names(file_names)
+
         emails, names = list(zip(*email_names_full.items()))
         emails = list(emails)
         names = list(names)
@@ -145,6 +147,12 @@ def process(folder: Path, db: Database, level: CsoportType, output_dir: Path) ->
         new_df = pd.DataFrame(data, index=emails)
         new_df.index.name = "Email"
         return new_df
+
+    def warn_if_same_dates_in_file_names(file_names: list[str]):
+        # warn if multiple files have the same date in their name.
+        dates = [find_date(f) for f in file_names]
+        if len(dates) > len(set(dates)):
+            print("Warning: Multiple files with the same date in their name!")
 
     dfs, file_names, email_names_full = cleanup_dataframes(db)
     df_summary = construct_collective_dataframe(file_names, dfs, email_names_full)
