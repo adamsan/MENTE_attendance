@@ -77,6 +77,11 @@ def upload_ui():
             st.write("Excel (`.xlsx`) fájlok elvárt formája:")
             st.write("Oszlopok: `Időbélyeg | E-mail-cím | Teljes név | Jössz próbára?`")
 
+        delete_db = st.checkbox(
+            "Üres adatbázissal kezdés",
+            help="Futás előtt törli az email-név adatbázist. Hasznos lehet, ha korábbi futtatás értékeit kell javítani.",
+            key="delete_db_checkbox",
+        )
         submitted = st.form_submit_button("Feltöltés", icon=":material/upload_2:")
 
     if submitted and uploaded_files and len(uploaded_files) > 0:
@@ -87,7 +92,7 @@ def upload_ui():
                 st.write("Nem találtam .xlsx fájlt a feltöltésben! :( ")
                 return
             st.session_state.tmp = tmp
-            db = Database(Path(tmp).parent / f"{level}.database.ini")
+            db = Database(Path(tmp).parent / f"{level}.database.ini", delete_db=delete_db)
             st.session_state.db = db
             try_to_generate_report(tmp, db, level)
 
@@ -118,9 +123,12 @@ def fix_errors_ui():
         # text area can't have key - it will not load it's value properly
         new_lines_str = st.text_area("Database:", value="".join(db.read_all_lines()), height="content")
         new_lines = [a + "\n" for a in new_lines_str.split("\n")]
+        clean = st.checkbox("Kommentek eltávolítása", key="remove_comments_checkbox")
         saved = st.form_submit_button("Mentés :)", icon=":material/save_as:")
         if saved:
             db.write_all_lines(new_lines)
+            if clean:
+                db.remove_comments()
             level = st.session_state.level
             tmp = st.session_state.tmp
             try_to_generate_report(tmp, db, level)
