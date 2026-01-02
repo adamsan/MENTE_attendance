@@ -8,8 +8,10 @@ from jelenlet.database import Database
 
 
 def main():
-    data_loc, output_dir, level = parse_args()
-    run_program(data_loc, output_dir, level, Database())  # 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
+    data_loc, output_dir, level, delete_db, clean = parse_args()
+    run_program(
+        data_loc, output_dir, level, Database(delete_db=delete_db, clean=clean)
+    )  # 'D:/workspaces/jupyter_notebooks/kozephalados_jelenleti/data/2025_26_osz'
 
 
 def run_program(data_loc: Path, output_dir: Path, level: CsoportType, db: Database) -> Path | None:
@@ -26,7 +28,7 @@ def run_program(data_loc: Path, output_dir: Path, level: CsoportType, db: Databa
         return None
 
 
-def parse_args() -> tuple[Path, Path, CsoportType]:
+def parse_args() -> tuple[Path, Path, CsoportType, bool, bool]:
     parser = argparse.ArgumentParser(description="Jelenléti adatok feldolgozása és Excel export készítés")
     parser.add_argument(
         "folder",
@@ -47,6 +49,9 @@ def parse_args() -> tuple[Path, Path, CsoportType]:
         help="Csoport szintje: kezdo | kozep | halado | egyeb (alapértelmezett: kozep)",
     )
 
+    parser.add_argument("--delete-db", action="store_true", help="Futás elején kitörli az email-név adatbázist.")
+    parser.add_argument("--clean", action="store_true", help="Futás elején eltávolítja a kommenteket az adatbázisból.")
+
     args = parser.parse_args()
 
     if not args.folder.exists():
@@ -58,7 +63,7 @@ def parse_args() -> tuple[Path, Path, CsoportType]:
     # kimeneti mappa létrehozása
     args.out.mkdir(parents=True, exist_ok=True)
 
-    return args.folder, args.out, args.szint
+    return args.folder, args.out, args.szint, args.delete_db, args.clean
 
 
 if __name__ == "__main__":

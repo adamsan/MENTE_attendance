@@ -5,12 +5,14 @@ EMAILS_DB_FILE = DATA_DIR.joinpath("database.ini")
 
 
 class Database:
-    def __init__(self, db_file: Path = EMAILS_DB_FILE) -> None:
+    def __init__(self, db_file: Path = EMAILS_DB_FILE, delete_db=False, clean=False) -> None:
         self.DB_FILE = db_file
-        if not self.DB_FILE.exists():
+        if not self.DB_FILE.exists() or delete_db:
             self.DB_FILE.write_text(
                 "# TODO: add <email> = <name> lines here\n#Lines beginning with # are comments, they can be removed.\n\n"
             )
+        if clean:  # remove comments
+            self.remove_comments()
 
     def read_email_name_database(self) -> dict[str, str]:
         with open(self.DB_FILE, encoding="utf-8") as f:
@@ -32,6 +34,11 @@ class Database:
     def write_all_lines(self, lines: list[str]):
         with open(self.DB_FILE, encoding="utf-8", mode="w") as f:
             f.writelines(lines)
+
+    def remove_comments(self):
+        db = self.read_email_name_database()
+        lines = [f"{k}={v}\n" for k, v in db.items()]
+        self.write_all_lines(lines)
 
 
 def _is_comment(line: str):
