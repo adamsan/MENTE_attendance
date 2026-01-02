@@ -50,7 +50,8 @@ A program az **uv** nevű eszközt használja, ami automatikusan letölti a szü
 ### Bemeneti fájlok
 
 Hozz létre egy mappát, pl.: `D:/jelenleti_adatok/2024_25_osz/`
-Ide töltsd le/csomagold ki a jelenléti ív fájljait.
+Ide töltsd le/csomagold ki a jelenléti ív fájljait. A webes felület elfogadja a tömörített (zip) állományt,
+amit kapunk, ha Google Drive-ról töltjük le a táblázatokat.
 
 **Fontos a fájlnév!**
 A program a fájlnévből dátumot keres, pontokkal elválasztva.
@@ -102,7 +103,7 @@ Ami, jó esetben kiírja az alábbi "help" szöveget:
 
 ```sh
 $ uv run jelenlet --help
-usage: jelenlet [-h] [--out OUT] [--szint {kezdo,kozep,halado,egyeb}] folder
+usage: jelenlet [-h] [--out OUT] [--szint {kezdo,kozep,halado,egyeb}] [--delete-db] [--clean] folder
 
 Jelenléti adatok feldolgozása és Excel export készítés
 
@@ -114,6 +115,8 @@ options:
   --out OUT             Kimeneti mappa az összefoglaló Excel fájlhoz (alapértelmezett: ./reports)
   --szint {kezdo,kozep,halado,egyeb}
                         Csoport szintje: kezdo | kozep | halado | egyeb (alapértelmezett: kozep)
+  --delete-db           Futás elején kitörli az email-név adatbázist.
+  --clean               Futás elején eltávolítja a kommenteket az adatbázisból.
 ```
 
 Ez alapján már lehet is futtatni:
